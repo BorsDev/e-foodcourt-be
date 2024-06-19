@@ -44,4 +44,9 @@ const comparePassword = async (password, hashedPassword) => {
   return isValid;
 };
 
-module.exports = { validateEmail, validatePassword, encryptPassword };
+module.exports = {
+  validateEmail,
+  validatePassword,
+  encryptPassword,
+  comparePassword,
+};
