@@ -1,10 +1,10 @@
-const { loginController } = require("../controllers/auth.controller");
+const { registerController } = require("../controllers/auth.controller");
 
 const authRoutes = [
   {
     method: "POST",
     path: "/auth/register",
-    handler: loginController,
+    handler: registerController,
   },
 ];
 

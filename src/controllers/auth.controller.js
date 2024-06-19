@@ -5,7 +5,7 @@ const {
 } = require("../helper/auth.helper");
 const userModel = require("../models/__index")["user"];
 
-const loginController = async (req, res) => {
+const registerController = async (req, res) => {
   // params validation
   const { type, role, method } = req.query || {};
   if (!type || !role || !method)
@@ -63,4 +63,4 @@ const loginController = async (req, res) => {
   }
 };
 
-module.exports = { loginController };
+module.exports = { registerController };
