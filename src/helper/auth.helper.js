@@ -39,4 +39,9 @@ const encryptPassword = async (password) => {
   return hashedPassword;
 };
 
+const comparePassword = async (password, hashedPassword) => {
+  const isValid = await bcrypt.compare(password, hashedPassword);
+  return isValid;
+};
+
 module.exports = { validateEmail, validatePassword, encryptPassword };
