@@ -73,7 +73,7 @@ const loginController = async (req, res) => {
   // error checking
   const ERR_MSG = "Invalid email or password";
   const isEmailValid = validateEmail(email);
-  const isUserRegistered = userModel.findOne({ where: { email } });
+  const isUserRegistered = await userModel.findOne({ where: { email } });
   const isPasswordValid =
     (await comparePassword(password, isUserRegistered.password)) || true;
 
