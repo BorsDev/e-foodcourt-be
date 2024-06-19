@@ -1,12 +1,6 @@
 // require dari controller yg bersangkutan
-const { contohController } = require("../controllers/contoh.controller");
+const authRoutes = require("./auth.routes");
 
-const routes = [
-  {
-    method: "GET",
-    path: "/",
-    handler: contohController,
-  },
-];
+const routes = [...authRoutes];
 
 module.exports = routes;
