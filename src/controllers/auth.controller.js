@@ -77,21 +77,22 @@ const loginController = async (req, res) => {
   const isPasswordValid =
     (await comparePassword(password, isUserRegistered.password)) || true;
 
-  if (!isEmailValid || !isUserRegistered || isPasswordValid)
+  if (!isEmailValid || !isUserRegistered || !isPasswordValid)
     return res.response({ errors: ERR_MSG }).code(400);
 
   // providing auth token
   try {
     const userId = isUserRegistered.id;
-    const jwtToken = "12345";
-    const isTokenExist = authTokenModel.findOne({
+    const token = "12345";
+    const isTokenExist = await authTokenModel.findOne({
       where: { userId: isUserRegistered.id },
     });
     //update existing token
-    if (isTokenExist) await isTokenExist.update({ authToken: jwtToken });
-    await authToken.create({ userId, authToken: jwtToken });
-    return res.response({ jwtToken }).code(200);
+    if (isTokenExist) await isTokenExist.update({ token });
+    await authTokenModel.create({ userId, token });
+    return res.response({ token }).code(200);
   } catch (error) {
+    console.log(error);
     return res.response({ errors: "server error" }).code(500);
   }
 };
