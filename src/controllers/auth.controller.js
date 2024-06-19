@@ -82,13 +82,13 @@ const loginController = async (req, res) => {
   // providing auth token
   try {
     const userId = isUserRegistered.id;
+    const jwtToken = "12345";
     const isTokenExist = authTokenModel.findOne({
       where: { userId: isUserRegistered.id },
     });
-    //destroy existing token
-    if (isTokenExist) await isTokenExist.destroy();
-    const jwtToken = "12345";
-    await authToken.create({ userId, jwtToken });
+    //update existing token
+    if (isTokenExist) await isTokenExist.update({ authToken: jwtToken });
+    await authToken.create({ userId, authToken: jwtToken });
     return res.response({ jwtToken }).code(200);
   } catch (error) {
     return res.response({ errors: "server error" }).code(500);
