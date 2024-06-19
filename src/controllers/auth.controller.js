@@ -2,6 +2,7 @@ const {
   validateEmail,
   validatePassword,
   encryptPassword,
+  comparePassword,
 } = require("../helper/auth.helper");
 const userModel = require("../models/__index")["user"];
 const authTokenModel = require("../models/__index")["authToken"];
@@ -64,4 +65,34 @@ const registerController = async (req, res) => {
   }
 };
 
-module.exports = { registerController };
+const loginController = async (req, res) => {
+  const { email, password } = req.payload || {};
+  if (!email || !password)
+    return res.response({ errors: "missing all fields" }).code(400);
+
+  // error checking
+  const ERR_MSG = "Invalid email or password";
+  const isEmailValid = validateEmail(email);
+  const isUserRegistered = userModel.findOne({ where: { email } });
+  const isPasswordValid = (await comparePassword(password)) || true;
+
+  if (!isEmailValid || !isUserRegistered || isPasswordValid)
+    return res.response({ errors: ERR_MSG }).code(400);
+
+  // providing auth token
+  try {
+    const userId = isUserRegistered.id;
+    const isTokenExist = authTokenModel.findOne({
+      where: { userId: isUserRegistered.id },
+    });
+    //destroy existing token
+    if (isTokenExist) await isTokenExist.destroy();
+    const jwtToken = "12345";
+    await authToken.create({ userId, jwtToken });
+    return res.response({ jwtToken }).code(200);
+  } catch (error) {
+    return res.response({ errors: "server error" }).code(500);
+  }
+};
+
+module.exports = { registerController, loginController };
