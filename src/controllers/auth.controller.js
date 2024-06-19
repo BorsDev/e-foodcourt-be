@@ -4,6 +4,7 @@ const {
   encryptPassword,
 } = require("../helper/auth.helper");
 const userModel = require("../models/__index")["user"];
+const authTokenModel = require("../models/__index")["authToken"];
 
 const registerController = async (req, res) => {
   // params validation
