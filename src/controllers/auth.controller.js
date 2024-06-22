@@ -3,6 +3,7 @@ const {
   validatePassword,
   encryptPassword,
   comparePassword,
+  generateAuthToken,
 } = require("../helper/auth.helper");
 const userModel = require("../models/__index")["user"];
 const authTokenModel = require("../models/__index")["authToken"];
@@ -85,7 +86,7 @@ const loginController = async (req, res) => {
   // providing auth token
   try {
     const userId = isUserRegistered.id;
-    const token = "12345";
+    const token = await generateAuthToken();
     const isTokenExist = await authTokenModel.findOne({
       where: { userId: isUserRegistered.id },
     });

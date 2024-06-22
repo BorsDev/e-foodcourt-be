@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const passwordValidator = require("password-validator");
+const Jwt = require("@hapi/jwt");
 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,9 +45,29 @@ const comparePassword = async (password, hashedPassword) => {
   return isValid;
 };
 
+const generateAuthToken = async () => {
+  const token = await Jwt.token.generate(
+    {
+      aud: "urn:audience:test",
+      iss: "urn:issuer:test",
+      user: "some_user_name",
+      group: "hapi_community",
+    },
+    {
+      key: process.env.AUTH_SECRET,
+      algorithm: "HS512",
+    },
+    {
+      ttlSec: 14400, // 4 hours
+    },
+  );
+  return token;
+};
+
 module.exports = {
   validateEmail,
   validatePassword,
   encryptPassword,
   comparePassword,
+  generateAuthToken,
 };
