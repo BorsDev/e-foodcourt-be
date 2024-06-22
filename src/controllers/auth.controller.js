@@ -99,4 +99,21 @@ const loginController = async (req, res) => {
   }
 };
 
-module.exports = { registerController, loginController };
+const logoutController = async (req, res) => {
+  const { userId } = req.params;
+  // token checking
+
+  const isTokenExist = await authTokenModel.findOne({ where: { userId } });
+  if (!isTokenExist) {
+    return res.response({ msg: "Unable to logout" }).code(400);
+  }
+  try {
+    await isTokenExist.destroy();
+    return res.response({ msg: "Logout Succesfully" }).code(200);
+  } catch (error) {
+    console.log(error);
+    return res.response({ msg: "Server Error 001" }).code(500);
+  }
+};
+
+module.exports = { registerController, loginController, logoutController };
