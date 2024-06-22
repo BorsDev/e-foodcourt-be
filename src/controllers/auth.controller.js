@@ -104,16 +104,8 @@ const logoutController = async (req, res) => {
   // token checking
 
   const isTokenExist = await authTokenModel.findOne({ where: { userId } });
-  if (!isTokenExist) {
-    return res.response({ msg: "Unable to logout, please refresh" }).code(400);
-  }
-  try {
-    await isTokenExist.destroy();
-    return res.response({ msg: "Logout Succesfully" }).code(200);
-  } catch (error) {
-    console.log(error);
-    return res.response({ msg: "Server Error 001" }).code(500);
-  }
+  if (isTokenExist) await isTokenExist.destroy();
+  return res.response({ msg: "Logout Succesfully" }).code(200);
 };
 
 module.exports = { registerController, loginController, logoutController };
