@@ -74,8 +74,10 @@ const loginController = async (req, res) => {
   const ERR_MSG = "Invalid email or password";
   const isEmailValid = validateEmail(email);
   const isUserRegistered = await userModel.findOne({ where: { email } });
-  const isPasswordValid =
-    (await comparePassword(password, isUserRegistered.password)) || true;
+  const isPasswordValid = await comparePassword(
+    password,
+    isUserRegistered.password,
+  );
 
   if (!isEmailValid || !isUserRegistered || !isPasswordValid)
     return res.response({ errors: ERR_MSG }).code(400);
