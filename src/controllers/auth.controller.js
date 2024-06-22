@@ -105,7 +105,7 @@ const logoutController = async (req, res) => {
 
   const isTokenExist = await authTokenModel.findOne({ where: { userId } });
   if (!isTokenExist) {
-    return res.response({ msg: "Unable to logout" }).code(400);
+    return res.response({ msg: "Unable to logout, please refresh" }).code(400);
   }
   try {
     await isTokenExist.destroy();

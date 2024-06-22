@@ -1,6 +1,7 @@
 const {
   registerController,
   loginController,
+  logoutController,
 } = require("../controllers/auth.controller");
 
 const authRoutes = [
@@ -13,6 +14,11 @@ const authRoutes = [
     method: "PATCH",
     path: "/auth/login",
     handler: loginController,
+  },
+  {
+    method: "DELETE",
+    path: "/auth/logout/{userId}",
+    handler: logoutController,
   },
 ];
 
