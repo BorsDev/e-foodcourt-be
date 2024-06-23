@@ -1,5 +1,3 @@
-const { DataTypes } = require("sequelize");
-
 module.exports = (sequelize, Sequelize) => {
   const AuthToken = sequelize.define("authToken", {
     userId: {
@@ -13,13 +11,11 @@ module.exports = (sequelize, Sequelize) => {
       },
     },
     token: {
-      type: Sequelize.DataTypes.STRING,
-      primaryKey: true,
+      type: Sequelize.DataTypes.STRING(500),
       allowNull: false,
       unique: true,
-      autoIncrement: false,
     },
   });
-  // AuthToken.sync(); // comment out after the database created
+  // AuthToken.sync({ force: true }); // comment out after the database created
   return AuthToken;
 };
