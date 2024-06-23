@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const passwordValidator = require("password-validator");
 const Jwt = require("@hapi/jwt");
+require("dotenv").config();
 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
