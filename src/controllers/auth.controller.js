@@ -91,7 +91,7 @@ const loginController = async (req, res) => {
       where: { userId: isUserRegistered.id },
     });
     //update existing token
-    if (isTokenExist) await isTokenExist.update({ token });
+    if (isTokenExist) await isTokenExist.destroy();
     await authTokenModel.create({ userId, token });
     return res.response({ token }).code(200);
   } catch (error) {
@@ -105,6 +105,7 @@ const logoutController = async (req, res) => {
   // token checking
 
   const isTokenExist = await authTokenModel.findOne({ where: { userId } });
+  console.log("is token exist", isTokenExist);
   if (isTokenExist) await isTokenExist.destroy();
   return res.response({ msg: "Logout Succesfully" }).code(200);
 };

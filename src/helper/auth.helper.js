@@ -46,7 +46,7 @@ const comparePassword = async (password, hashedPassword) => {
 };
 
 const generateAuthToken = async () => {
-  const token = await Jwt.token.generate(
+  return Jwt.token.generate(
     {
       aud: "urn:audience:test",
       iss: "urn:issuer:test",
@@ -61,7 +61,25 @@ const generateAuthToken = async () => {
       ttlSec: 14400, // 4 hours
     },
   );
-  return token;
+};
+
+const verifyToken = async (token) => {
+  const decodedToken = await Jwt.token.decode(token);
+  console.log(decodedToken);
+  const verify = (artifact, secret, options = {}) => {
+    try {
+      Jwt.token.verify(artifact, secret, options);
+      console.log("ok");
+      return { isValid: true };
+    } catch (err) {
+      console.log(err);
+      return {
+        isValid: false,
+        error: err.message,
+      };
+    }
+  };
+  return verify(decodedToken, process.env.AUTH_SECRET);
 };
 
 module.exports = {
