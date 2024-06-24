@@ -1,5 +1,7 @@
 const bcrypt = require("bcryptjs");
 const passwordValidator = require("password-validator");
+const Jwt = require("@hapi/jwt");
+require("dotenv").config();
 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,4 +41,50 @@ const encryptPassword = async (password) => {
   return hashedPassword;
 };
 
-module.exports = { validateEmail, validatePassword, encryptPassword };
+const comparePassword = async (password, hashedPassword) => {
+  const isValid = await bcrypt.compare(password, hashedPassword);
+  return isValid;
+};
+
+const generateAuthToken = async (userId) => {
+  return Jwt.token.generate(
+    {
+      userId: userId,
+    },
+    {
+      key: process.env.AUTH_SECRET,
+      algorithm: "HS512",
+    },
+    {
+      ttlSec: 14400, // 4 hours
+    },
+  );
+};
+
+const verifyToken = async (token) => {
+  const decodedToken = Jwt.token.decode(token);
+
+  const verify = (artifact, secret, options = {}) => {
+    try {
+      const payload = artifact.decoded.payload;
+      Jwt.token.verify(artifact, secret, options);
+      return { isValid: true, ...payload };
+    } catch (err) {
+      return {
+        isValid: false,
+        error: err.message,
+      };
+    }
+  };
+
+  return verify(decodedToken, process.env.AUTH_SECRET);
+};
+
+module.exports = {
+  validateEmail,
+  validatePassword,
+  encryptPassword,
+  comparePassword,
+  generateAuthToken,
+  verifyToken,
+};

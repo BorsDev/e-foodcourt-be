@@ -19,5 +19,6 @@ db.Sequelize = Sequelize;
 
 //mysql model
 db.user = require("./user.model")(sequelize, Sequelize);
+db.authToken = require("./auth_token.model")(sequelize, Sequelize);
 
 module.exports = db;
