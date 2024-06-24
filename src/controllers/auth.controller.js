@@ -1,4 +1,3 @@
-const { where } = require("sequelize");
 const {
   validateEmail,
   validatePassword,
@@ -84,12 +83,11 @@ const loginController = async (req, res) => {
 
   try {
     // check if token exist -> exist == destroy
+    const userId = isRegistered.id;
     const isTokenExist = await authTokenModel.findOne({
-      where: { userId: isRegistered.id },
+      where: { userId },
     });
     if (isTokenExist) await isTokenExist.destroy();
-
-    const userId = isRegistered.id;
     const token = await generateAuthToken(userId);
     await authTokenModel.create({ userId, token });
     return res.response({ token }).code(200);
@@ -106,7 +104,9 @@ const logoutController = async (req, res) => {
 
   // Decode the token & search for existing token
   const { userId, iat, exp, isValid } = await verifyToken(token);
-  const isTokenExist = await authTokenModel.findOne({ where: { token } });
+  const isTokenExist = await authTokenModel.findOne({
+    where: { token },
+  });
 
   // If token invalid or not exist -> 401
   if (!isValid || !isTokenExist)
