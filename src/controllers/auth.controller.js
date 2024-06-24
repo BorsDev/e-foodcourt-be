@@ -74,26 +74,23 @@ const loginController = async (req, res) => {
     return res.response({ errors: "missing all fields" }).code(400);
 
   // error checking
-  const ERR_MSG = "Invalid email or password";
-  const isEmailValid = validateEmail(email);
-  const isUserRegistered = await userModel.findOne({ where: { email } });
+  const isRegistered = await userModel.findOne({ where: { email } });
   const isPasswordValid = await comparePassword(
     password,
-    isUserRegistered.password,
+    isRegistered.password,
   );
+  if (!isRegistered || !isPasswordValid)
+    return res.response({ errors: "Invalid email or password" }).code(400);
 
-  if (!isEmailValid || !isUserRegistered || !isPasswordValid)
-    return res.response({ errors: ERR_MSG }).code(400);
-
-  // providing auth token
   try {
-    const userId = isUserRegistered.id;
-    const token = await generateAuthToken(userId);
+    // check if token exist -> exist == destroy
     const isTokenExist = await authTokenModel.findOne({
-      where: { userId: isUserRegistered.id },
+      where: { userId: isRegistered.id },
     });
-
     if (isTokenExist) await isTokenExist.destroy();
+
+    const userId = isRegistered.id;
+    const token = await generateAuthToken(userId);
     await authTokenModel.create({ userId, token });
     return res.response({ token }).code(200);
   } catch (error) {
