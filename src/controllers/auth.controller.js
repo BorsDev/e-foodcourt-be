@@ -1,9 +1,11 @@
+const { where } = require("sequelize");
 const {
   validateEmail,
   validatePassword,
   encryptPassword,
   comparePassword,
   generateAuthToken,
+  verifyToken,
 } = require("../helper/auth.helper");
 const userModel = require("../models/__index")["user"];
 const authTokenModel = require("../models/__index")["authToken"];
@@ -86,11 +88,11 @@ const loginController = async (req, res) => {
   // providing auth token
   try {
     const userId = isUserRegistered.id;
-    const token = await generateAuthToken();
+    const token = await generateAuthToken(userId);
     const isTokenExist = await authTokenModel.findOne({
       where: { userId: isUserRegistered.id },
     });
-    //update existing token
+
     if (isTokenExist) await isTokenExist.destroy();
     await authTokenModel.create({ userId, token });
     return res.response({ token }).code(200);
@@ -101,13 +103,35 @@ const loginController = async (req, res) => {
 };
 
 const logoutController = async (req, res) => {
-  const { userId } = req.params;
-  // token checking
+  // Token sanitation
+  const { token } = req.payload || {};
+  if (!token) return res.response({ errors: "Missing Token" }).code(400);
 
-  const isTokenExist = await authTokenModel.findOne({ where: { userId } });
-  console.log("is token exist", isTokenExist);
-  if (isTokenExist) await isTokenExist.destroy();
-  return res.response({ msg: "Logout Succesfully" }).code(200);
+  // Decode the token & search for existing token
+  const { userId, iat, exp, isValid } = await verifyToken(token);
+  const isTokenExist = await authTokenModel.findOne({ where: { token } });
+
+  // If token invalid or not exist -> 401
+  if (!isValid || !isTokenExist)
+    return res.response({ errors: "Unauthorized" }).code(401);
+
+  // If the token dont match with the user ID -> 401
+  if (isTokenExist.userId != userId)
+    return res.response({ errors: "Unauthorized" }).code(401);
+
+  // If the token is expired -> destroy the token record in DB
+  if (iat + 14400 >= exp) {
+    await isTokenExist.destroy();
+    return res.response({ msg: "Expired" }).code(401);
+  }
+
+  // Token valid -> destroy token
+  try {
+    await isTokenExist.destroy();
+    return res.response({ msg: "Logout Successfully" }).code(200);
+  } catch (error) {
+    return res.response({ errors: "Server Error" }).code(500);
+  }
 };
 
 module.exports = { registerController, loginController, logoutController };

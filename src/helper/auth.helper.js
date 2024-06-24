@@ -46,13 +46,10 @@ const comparePassword = async (password, hashedPassword) => {
   return isValid;
 };
 
-const generateAuthToken = async () => {
+const generateAuthToken = async (userId) => {
   return Jwt.token.generate(
     {
-      aud: "urn:audience:test",
-      iss: "urn:issuer:test",
-      user: "some_user_name",
-      group: "hapi_community",
+      userId: userId,
     },
     {
       key: process.env.AUTH_SECRET,
@@ -65,21 +62,21 @@ const generateAuthToken = async () => {
 };
 
 const verifyToken = async (token) => {
-  const decodedToken = await Jwt.token.decode(token);
-  console.log(decodedToken);
+  const decodedToken = Jwt.token.decode(token);
+
   const verify = (artifact, secret, options = {}) => {
     try {
+      const payload = artifact.decoded.payload;
       Jwt.token.verify(artifact, secret, options);
-      console.log("ok");
-      return { isValid: true };
+      return { isValid: true, ...payload };
     } catch (err) {
-      console.log(err);
       return {
         isValid: false,
         error: err.message,
       };
     }
   };
+
   return verify(decodedToken, process.env.AUTH_SECRET);
 };
 
@@ -89,4 +86,5 @@ module.exports = {
   encryptPassword,
   comparePassword,
   generateAuthToken,
+  verifyToken,
 };
