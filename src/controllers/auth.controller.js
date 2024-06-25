@@ -1,4 +1,4 @@
-const { QueryTypes } = require("sequelize");
+const { QueryTypes, where } = require("sequelize");
 const {
   validateEmail,
   validatePassword,
@@ -7,6 +7,7 @@ const {
   generateAuthToken,
   verifyToken,
 } = require("../helper/auth.helper");
+const { sequelize } = require("../models/__index");
 const userModel = require("../models/__index")["user"];
 const authTokenModel = require("../models/__index")["authToken"];
 
@@ -74,27 +75,30 @@ const loginController = async (req, res) => {
   if (!email || !password)
     return res.response({ errors: "missing all fields" }).code(400);
 
-  // Check credential validity -> return 400 if not match
-  const isUser = await userModel.findOne({ where: { email } });
-  const isPasswordValid = await comparePassword(password, isUser.password);
-  console.log(isUser);
-  if (!isUser || !isPasswordValid)
+  // const new valdiation
+  const isUserToken = await sequelize.query(`
+    select
+      users.id as userId,
+      users.password as pwd,
+      authtokens.token
+    from
+      users left join authtokens on users.id = authtokens.userId
+    where
+      email = '${email}'`);
+
+  const { userId, pwd, token } = isUserToken[0][0];
+  const isPasswordValid = await comparePassword(password, pwd);
+  if (!userId || !isPasswordValid)
     return res.response({ errors: "Invalid Credentials" }).code(400);
 
-  // Define user's id
-  const userId = isUser.id;
-
   // Check for existing token, destroy if found any
-  const token = await generateAuthToken(userId);
-  const isTokenExist = await authTokenModel.findOne({
-    where: { userId },
-  });
-  if (isTokenExist) await isTokenExist.destroy();
+  const newtoken = await generateAuthToken(userId);
+  if (token) await authTokenModel.destroy({ where: { userId } });
 
   // Insert token
   try {
-    await authTokenModel.create({ userId, token });
-    return res.response({ token }).code(200);
+    await authTokenModel.create({ userId, token: newtoken });
+    return res.response({ token: newtoken }).code(200);
   } catch (error) {
     console.log(error);
     return res.response({ errors: "server error" }).code(500);
