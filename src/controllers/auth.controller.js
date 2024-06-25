@@ -125,7 +125,7 @@ const logoutController = async (req, res) => {
     return res.response({ errors: "Unauthorized" }).code(401);
 
   // If the token is expired -> destroy the token record in DB
-  if (iat + 14400 >= exp) {
+  if (iat >= exp) {
     await isTokenExist.destroy();
     return res.response({ msg: "Expired" }).code(401);
   }
