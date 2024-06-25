@@ -1,3 +1,4 @@
+const { QueryTypes } = require("sequelize");
 const {
   validateEmail,
   validatePassword,
@@ -68,27 +69,30 @@ const registerController = async (req, res) => {
 };
 
 const loginController = async (req, res) => {
+  // Get the credentials from payload -> return 400 if nothing provided
   const { email, password } = req.payload || {};
   if (!email || !password)
     return res.response({ errors: "missing all fields" }).code(400);
 
-  // error checking
-  const isRegistered = await userModel.findOne({ where: { email } });
-  const isPasswordValid = await comparePassword(
-    password,
-    isRegistered.password,
-  );
-  if (!isRegistered || !isPasswordValid)
-    return res.response({ errors: "Invalid email or password" }).code(400);
+  // Check credential validity -> return 400 if not match
+  const isUser = await userModel.findOne({ where: { email } });
+  const isPasswordValid = await comparePassword(password, isUser.password);
+  console.log(isUser);
+  if (!isUser || !isPasswordValid)
+    return res.response({ errors: "Invalid Credentials" }).code(400);
 
+  // Define user's id
+  const userId = isUser.id;
+
+  // Check for existing token, destroy if found any
+  const token = await generateAuthToken(userId);
+  const isTokenExist = await authTokenModel.findOne({
+    where: { userId },
+  });
+  if (isTokenExist) await isTokenExist.destroy();
+
+  // Insert token
   try {
-    // check if token exist -> exist == destroy
-    const userId = isRegistered.id;
-    const isTokenExist = await authTokenModel.findOne({
-      where: { userId },
-    });
-    if (isTokenExist) await isTokenExist.destroy();
-    const token = await generateAuthToken(userId);
     await authTokenModel.create({ userId, token });
     return res.response({ token }).code(200);
   } catch (error) {
