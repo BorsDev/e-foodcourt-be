@@ -86,7 +86,7 @@ const loginController = async (req, res) => {
     where
       email = '${email}'`);
 
-  const { userId, pwd, token } = isUserToken[0][0];
+  const { userId, pwd, token } = isUserToken[0][0] || {};
   const isPasswordValid = await comparePassword(password, pwd);
   if (!userId || !isPasswordValid)
     return res.response({ errors: "Invalid Credentials" }).code(400);
