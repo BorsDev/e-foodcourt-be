@@ -3,6 +3,9 @@ const passwordValidator = require("password-validator");
 const Jwt = require("@hapi/jwt");
 require("dotenv").config();
 
+// Auth Token DB
+const authTokenModel = require("../models/__index")["authToken"];
+
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -64,16 +67,23 @@ const generateAuthToken = async (userId) => {
 const verifyToken = async (token) => {
   const decodedToken = Jwt.token.decode(token);
   const { payload } = decodedToken.decoded;
+  const { userId } = payload;
   const options = {};
+
+  const isExist = await authTokenModel.findOne({
+    where: { token },
+  });
+  if (!token) return { isValid: false };
 
   try {
     Jwt.token.verify(decodedToken, process.env.AUTH_SECRET, options);
-    return { isValid: true, ...payload };
-  } catch (err) {
+    if (isExist.userId != userId) return { isValid: false };
     return {
-      isValid: false,
-      error: err.message,
+      isValid: true,
+      userId: payload.userId,
     };
+  } catch (err) {
+    return { isValid: false };
   }
 };
 
