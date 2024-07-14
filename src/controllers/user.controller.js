@@ -63,5 +63,33 @@ const getUserById = async (req, res) => {
 };
 // edit user
 // terminate user
+const terminateUserById = async (req, res) => {
+  const { params, headers } = req;
+  // Token Validation
+  const { token } = headers || {};
+  if (!token) return res.response({ errors: "Missing Token" }).code(400);
 
-module.exports = { getUserList, getUserById };
+  // Decode the token & search for existing token
+  const { isValid, userId } = await verifyToken(token);
+  if (!isValid) {
+    return res.response({ msg: "Unauthorized" }).code(401);
+  }
+  // check user existance
+  const { id } = params;
+  const user = await userModel.findByPk(id);
+
+  // if data not found
+  if (!user) return res.response({}).code(404);
+
+  // if the targeted data is actor data
+  if (user.id == userId) return res.response({}).code(403);
+
+  try {
+    await user.destroy();
+    return res.response({}).code(200);
+  } catch (error) {
+    return res.response({ msg: "server error" }).code(500);
+  }
+};
+
+module.exports = { getUserList, getUserById, terminateUserById };
