@@ -63,21 +63,18 @@ const generateAuthToken = async (userId) => {
 
 const verifyToken = async (token) => {
   const decodedToken = Jwt.token.decode(token);
+  const { payload } = decodedToken.decoded;
+  const options = {};
 
-  const verify = (artifact, secret, options = {}) => {
-    try {
-      const payload = artifact.decoded.payload;
-      Jwt.token.verify(artifact, secret, options);
-      return { isValid: true, ...payload };
-    } catch (err) {
-      return {
-        isValid: false,
-        error: err.message,
-      };
-    }
-  };
-
-  return verify(decodedToken, process.env.AUTH_SECRET);
+  try {
+    Jwt.token.verify(decodedToken, process.env.AUTH_SECRET, options);
+    return { isValid: true, ...payload };
+  } catch (err) {
+    return {
+      isValid: false,
+      error: err.message,
+    };
+  }
 };
 
 module.exports = {
