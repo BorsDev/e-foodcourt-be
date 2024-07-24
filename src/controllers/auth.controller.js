@@ -61,7 +61,7 @@ const registerController = async (req, res) => {
       fullName,
       role,
       password: hashedPassword,
-      status: "invited",
+      status: "active",
       createdById: "",
     });
     return res.response({}).code(200);
