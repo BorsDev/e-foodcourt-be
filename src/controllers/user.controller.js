@@ -29,8 +29,29 @@ const getUserList = async (req, res) => {
     ${limit}
   OFFSET
     ${offset}`;
-  const data = await sequelize.query(query, {
+  const users = await sequelize.query(query, {
     type: QueryTypes.SELECT,
+  });
+
+  let data = [];
+
+  // function to extract fullname from the createdById
+  const getFullName = (id) => {
+    if (id == "") return "system";
+    const index = users.findIndex((u) => u.id == id);
+    return users[index].fullName;
+  };
+
+  users.forEach((user) => {
+    data.push({
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      createdBy: getFullName(user.createdById),
+      createdAt: user.createdAt,
+    });
   });
 
   return res.response({ data }).code(200);
