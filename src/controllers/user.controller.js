@@ -5,7 +5,7 @@ const userModel = require("../models/__index")["user"];
 const authTokenModel = require("../models/__index")["authToken"];
 
 const getUserList = async (req, res) => {
-  const { params, headers } = req;
+  const { query, headers } = req;
   // Token Validation
   const { token } = headers || {};
   if (!token) return res.response({ errors: "Missing Token" }).code(400);
@@ -16,12 +16,12 @@ const getUserList = async (req, res) => {
     return res.response({ msg: "Unauthorized" }).code(401);
   }
 
-  // if params not provided, returned default stuffs
-  const page = params.page ? params.page : 0;
-  const limit = params.limit ? params.limit : 10;
+  // if query not provided, returned default stuffs
+  const page = query.page ? query.page : 0;
+  const limit = query.limit ? query.limit : 10;
   const offset = page > 1 ? (page - 1) * limit : 0;
 
-  const query = `
+  const q = `
   SELECT * FROM
     USERS
   ORDER BY
@@ -30,7 +30,8 @@ const getUserList = async (req, res) => {
     ${limit}
   OFFSET
     ${offset}`;
-  const users = await sequelize.query(query, {
+
+  const users = await sequelize.query(q, {
     type: QueryTypes.SELECT,
   });
 
