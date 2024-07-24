@@ -40,18 +40,13 @@ module.exports = (sequelize, Sequelize) => {
     createdById: {
       type: Sequelize.DataTypes.UUID,
       allowNull: false,
-      unique: true,
       autoIncrement: false,
-      references: {
-        model: "users",
-        key: "id",
-      },
     },
     password: {
       type: Sequelize.DataTypes.STRING,
       allowNull: false,
     },
   });
-  //   User.sync(); // comment out after the database created
+  // User.sync({ force: true }); // comment out after the database created
   return User;
 };
