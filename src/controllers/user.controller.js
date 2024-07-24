@@ -19,7 +19,7 @@ const getUserList = async (req, res) => {
   // if params not provided, returned default stuffs
   const page = params.page ? params.page : 0;
   const limit = params.limit ? params.limit : 10;
-  const offest = page > 1 ? 0 : (page - 1) * limit;
+  const offset = page > 1 ? (page - 1) * limit : 0;
 
   const query = `
   SELECT * FROM
