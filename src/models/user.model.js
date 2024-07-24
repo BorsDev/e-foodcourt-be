@@ -28,6 +28,25 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DataTypes.ENUM("owner", "admin"),
       allowNull: false,
     },
+    status: {
+      type: Sequelize.DataTypes.ENUM(
+        "invited",
+        "expired",
+        "active",
+        "inactive",
+      ),
+      allowNull: false,
+    },
+    createdById: {
+      type: Sequelize.DataTypes.UUID,
+      allowNull: false,
+      unique: true,
+      autoIncrement: false,
+      references: {
+        model: "users",
+        key: "id",
+      },
+    },
     password: {
       type: Sequelize.DataTypes.STRING,
       allowNull: false,
