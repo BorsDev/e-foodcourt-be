@@ -2,6 +2,7 @@ const { verifyToken } = require("../helper/auth.helper");
 const { sequelize } = require("../models/__index");
 const { QueryTypes } = require("sequelize");
 const { validateEmail } = require("../helper/auth.helper");
+const { validateContent } = require("../helper/form.helper");
 const userModel = require("../models/__index")["user"];
 const authTokenModel = require("../models/__index")["authToken"];
 
@@ -82,15 +83,16 @@ const inviteUser = async (req, res) => {
   }
 
   // validate payload data
-  const { data, role } = payload || {};
-  if (!data || !role) {
-    let err = [];
-    if (!data) err.push("data");
-    if (!role) err.push("role");
-    return res.response({ type: "missing_data", fields: err }).code(400);
+  const requiredPayload = ["data", "role"];
+  const validatePayload = validateContent(requiredPayload, payload);
+  if (!validatePayload.isValid) {
+    return res
+      .response({ type: "missing_data", fields: validatePayload.err })
+      .code(400);
   }
 
   // validate received email
+  const { data, role } = payload || {};
   const emails = data;
   const length = emails.length;
 
