@@ -19,7 +19,7 @@ const uniqueEmail = async (email, findByEmail) => {
   if (!isValid) err.push("invalid");
   if (isRegistered.registered) err.push("registered");
 
-  if (!isValid || !isRegistered.isValid)
+  if (!isValid || isRegistered.registered)
     return { isValid: false, err: { address: email, err } };
   return { isValid: true };
 };

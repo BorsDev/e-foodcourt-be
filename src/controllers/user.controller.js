@@ -7,6 +7,10 @@ const userModel = require("../models/__index")["user"];
 const { findByEmail } = require("../repo/user.repo");
 const authTokenModel = require("../models/__index")["authToken"];
 
+// invite code
+const { addInviteCode } = require("../repo/invite_code.repo");
+const { generateCode } = require("../helper/inviteCode.helper");
+
 const getUserList = async (req, res) => {
   const { query, headers } = req;
   // Token Validation
@@ -106,6 +110,7 @@ const inviteUser = async (req, res) => {
 
   for (const email of emails) {
     const isEmailValid = await uniqueEmail(email, findByEmail);
+    console.log("isemailvald", isEmailValid);
     if (!isEmailValid.isValid) {
       isError = true;
       errors.push(isEmailValid.err);
@@ -134,7 +139,7 @@ const inviteUser = async (req, res) => {
         "password",
       ],
     });
-    console.log(createdUser);
+    console.log("erereerereer", createdUser);
     return res.response({}).code(200);
   } catch (error) {
     console.log(error);
