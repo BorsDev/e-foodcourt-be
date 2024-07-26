@@ -106,7 +106,6 @@ const inviteUser = async (req, res) => {
 
   for (const email of emails) {
     const isEmailValid = await uniqueEmail(email, findByEmail);
-    console.log(isEmailValid);
     if (!isEmailValid.isValid) {
       isError = true;
       errors.push(isEmailValid.err);
@@ -124,7 +123,6 @@ const inviteUser = async (req, res) => {
   if (isError) return res.response({ type: "validation", errors }).code(400);
 
   try {
-    console.log("=======================err");
     const createdUser = await userModel.bulkCreate(newUser, {
       fields: [
         "id",
