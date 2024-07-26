@@ -11,6 +11,25 @@ const validateEmail = (email) => {
   return emailRegex.test(email);
 };
 
+const registeredEmail = async (email, model) => {
+  const isRegistered = await model.findOne({ where: { email } });
+  if (isRegistered) return { isValid: true };
+  return { isValid: false };
+};
+
+const uniqueEmail = async (email, model) => {
+  let err = [];
+  const isValid = validateEmail(email);
+  const isRegistered = await registeredEmail(email, model);
+
+  if (!isValid) err.push("invalid");
+  if (isRegistered) err.push("registered");
+
+  if (!isValid || isRegistered)
+    return { isValid: false, err: { address: email, err } };
+  return { isValid: true };
+};
+
 const validatePassword = (password) => {
   const pwdSchema = new passwordValidator()
     .min(14, "Password must contain at least 14 characters")
@@ -94,4 +113,5 @@ module.exports = {
   comparePassword,
   generateAuthToken,
   verifyToken,
+  uniqueEmail,
 };

@@ -1,7 +1,7 @@
 const { verifyToken } = require("../helper/auth.helper");
 const { sequelize } = require("../models/__index");
 const { QueryTypes } = require("sequelize");
-const { validateEmail } = require("../helper/auth.helper");
+const { validateEmail, uniqueEmail } = require("../helper/auth.helper");
 const { validateContent } = require("../helper/form.helper");
 const userModel = require("../models/__index")["user"];
 const authTokenModel = require("../models/__index")["authToken"];
@@ -104,26 +104,19 @@ const inviteUser = async (req, res) => {
   let isError = false;
 
   for (const email of emails) {
-    const isValid = validateEmail(email);
-    if (!isValid) {
-      isError = true;
-      errors.push({ address: email, error: ["invalid"] });
+    const isEmailValid = await uniqueEmail(email, userModel);
+    if (isEmailValid.isValid) {
+      newUser.push({
+        fullName: email,
+        email,
+        role,
+        status: "invited",
+        createdById: userId,
+        password: "",
+      });
     }
-
-    const isRegistered = await userModel.findOne({ where: { email } });
-    if (isRegistered) {
-      isError = true;
-      errors.push({ address: email, error: ["registered"] });
-    }
-
-    newUser.push({
-      fullName: email,
-      email,
-      role,
-      status: "invited",
-      createdById: userId,
-      password: "",
-    });
+    isError = true;
+    errors.push(isEmailValid.err);
   }
 
   if (isError) return res.response({ type: "validation", errors }).code(400);
