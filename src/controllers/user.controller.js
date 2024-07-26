@@ -4,6 +4,7 @@ const { QueryTypes } = require("sequelize");
 const { validateEmail, uniqueEmail } = require("../helper/auth.helper");
 const { validateContent } = require("../helper/form.helper");
 const userModel = require("../models/__index")["user"];
+const { findByEmail } = require("../repo/user.repo");
 const authTokenModel = require("../models/__index")["authToken"];
 
 const getUserList = async (req, res) => {
@@ -104,26 +105,27 @@ const inviteUser = async (req, res) => {
   let isError = false;
 
   for (const email of emails) {
-    const isEmailValid = await uniqueEmail(email, userModel);
-    if (isEmailValid.isValid) {
-      newUser.push({
-        fullName: email,
-        email,
-        role,
-        status: "invited",
-        createdById: userId,
-        password: "",
-      });
+    const isEmailValid = await uniqueEmail(email, findByEmail);
+    console.log(isEmailValid);
+    if (!isEmailValid.isValid) {
+      isError = true;
+      errors.push(isEmailValid.err);
     }
-    isError = true;
-    errors.push(isEmailValid.err);
+    newUser.push({
+      fullName: email,
+      email,
+      role,
+      status: "invited",
+      createdById: userId,
+      password: "",
+    });
   }
 
   if (isError) return res.response({ type: "validation", errors }).code(400);
 
   try {
     console.log("=======================err");
-    await userModel.bulkCreate(newUser, {
+    const createdUser = await userModel.bulkCreate(newUser, {
       fields: [
         "id",
         "fullName",
@@ -134,6 +136,7 @@ const inviteUser = async (req, res) => {
         "password",
       ],
     });
+    console.log(createdUser);
     return res.response({}).code(200);
   } catch (error) {
     console.log(error);

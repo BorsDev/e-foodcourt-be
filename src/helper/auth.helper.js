@@ -11,21 +11,21 @@ const validateEmail = (email) => {
   return emailRegex.test(email);
 };
 
-const registeredEmail = async (email, model) => {
-  const isRegistered = await model.findOne({ where: { email } });
-  if (isRegistered) return { isValid: true };
+const registeredEmail = async (email, findByEmail) => {
+  const isRegistered = await findByEmail(email);
+  if (!isRegistered.isOK) return { isValid: true };
   return { isValid: false };
 };
 
-const uniqueEmail = async (email, model) => {
+const uniqueEmail = async (email, findByEmail) => {
   let err = [];
   const isValid = validateEmail(email);
-  const isRegistered = await registeredEmail(email, model);
+  const isRegistered = await registeredEmail(email, findByEmail);
 
   if (!isValid) err.push("invalid");
-  if (isRegistered) err.push("registered");
+  if (!isRegistered.isValid) err.push("registered");
 
-  if (!isValid || isRegistered)
+  if (!isValid || !isRegistered.isValid)
     return { isValid: false, err: { address: email, err } };
   return { isValid: true };
 };
