@@ -1,14 +1,12 @@
 const model = require("../models/__index")["inviteCode"];
 
-const addInviteCode = async (data) => {
-  const { userId, code, expiredAt } = data || {};
+const addInviteCodes = async (data) => {
   try {
-    model.create({ userId, code, expiredAt });
+    model.bulkCreate(data);
     return { isOK: true };
   } catch (error) {
-    console.log(error);
     return { isOk: false, error };
   }
 };
 
-module.exports = { addInviteCode };
+module.exports = { addInviteCodes };

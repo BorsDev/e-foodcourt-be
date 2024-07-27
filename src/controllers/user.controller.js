@@ -8,7 +8,7 @@ const { findByEmail } = require("../repo/user.repo");
 const authTokenModel = require("../models/__index")["authToken"];
 
 // invite code
-const { addInviteCode } = require("../repo/invite_code.repo");
+const { addInviteCodes } = require("../repo/invite_code.repo");
 const { generateCode } = require("../helper/inviteCode.helper");
 
 const getUserList = async (req, res) => {
@@ -106,11 +106,12 @@ const inviteUser = async (req, res) => {
 
   let errors = [];
   let newUser = [];
+  let invitations = [];
   let isError = false;
 
   for (const email of emails) {
     const isEmailValid = await uniqueEmail(email, findByEmail);
-    console.log("isemailvald", isEmailValid);
+    const code = await generateCode();
     if (!isEmailValid.isValid) {
       isError = true;
       errors.push(isEmailValid.err);
@@ -123,23 +124,15 @@ const inviteUser = async (req, res) => {
       createdById: userId,
       password: "",
     });
+    invitations.push({ email, ...code });
   }
 
   if (isError) return res.response({ type: "validation", errors }).code(400);
 
   try {
-    const createdUser = await userModel.bulkCreate(newUser, {
-      fields: [
-        "id",
-        "fullName",
-        "email",
-        "role",
-        "status",
-        "createdById",
-        "password",
-      ],
-    });
-    console.log("erereerereer", createdUser);
+    await userModel.bulkCreate(newUser);
+    await addInviteCodes(invitations);
+
     return res.response({}).code(200);
   } catch (error) {
     console.log(error);
