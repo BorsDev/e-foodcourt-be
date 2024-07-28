@@ -28,4 +28,14 @@ const getExpiredCodeEmail = async (currentTime) => {
   }
 };
 
-module.exports = { addInviteCodes, getExpiredCodeEmail };
+const updateInviteCode = async (data, email) => {
+  const { code, expiredAt } = data;
+  try {
+    await model.update({ code, expiredAt }, { where: { email } });
+  } catch (error) {
+    console.log("Error from updateCode: \n", error);
+    return { isOK: false };
+  }
+};
+
+module.exports = { addInviteCodes, getExpiredCodeEmail, updateInviteCode };

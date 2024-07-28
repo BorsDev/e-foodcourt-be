@@ -17,5 +17,12 @@ const updateExpiredUser = async (email) => {
     console.log("updateExpiredUser error");
   }
 };
+const updateStatus = async (status, email) => {
+  try {
+    await model.update({ status }, { where: { email } });
+  } catch (error) {
+    console.log("updateStatus error \n", error);
+  }
+};
 
-module.exports = { findByEmail, updateExpiredUser };
+module.exports = { findByEmail, updateExpiredUser, updateStatus };

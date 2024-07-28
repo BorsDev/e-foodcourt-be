@@ -4,13 +4,18 @@ const { QueryTypes } = require("sequelize");
 const { validateEmail, uniqueEmail } = require("../helper/auth.helper");
 const { validateContent } = require("../helper/form.helper");
 const userModel = require("../models/__index")["user"];
-const { findByEmail, updateExpiredUser } = require("../repo/user.repo");
+const {
+  findByEmail,
+  updateExpiredUser,
+  updateStatus,
+} = require("../repo/user.repo");
 const authTokenModel = require("../models/__index")["authToken"];
 
 // invite code
 const {
   addInviteCodes,
   getExpiredCodeEmail,
+  updateInviteCode,
 } = require("../repo/invite_code.repo");
 const { generateCode } = require("../helper/inviteCode.helper");
 
@@ -145,6 +150,50 @@ const inviteUser = async (req, res) => {
   }
 };
 
+const renewInvitation = async (req, res) => {
+  const { headers, payload } = req;
+
+  // validate token
+  const { token } = headers || {};
+  if (!token) return res.response({ errors: "Missing Token" }).code(400);
+
+  const { isValid, userId } = await verifyToken(token);
+  if (!isValid) {
+    return res.response({ msg: "Unauthorized" }).code(401);
+  }
+
+  const requiredPayload = ["email", "statusFrom"];
+  const validatePayload = validateContent(requiredPayload, payload);
+  if (!validatePayload.isValid) {
+    return res
+      .response({ type: "missing_data", fields: validatePayload.err })
+      .code(400);
+  }
+
+  const { email, statusFrom } = payload;
+  if (!email)
+    return res.response({ error: "validation", fields: "email", value: email });
+
+  if (statusFrom != "expired")
+    return res
+      .response({
+        error: "validation",
+        fields: "statusFrom",
+        value: statusFrom,
+      })
+      .code(400);
+
+  try {
+    const code = await generateCode();
+    await updateStatus("invited", email);
+    await updateInviteCode(code, email);
+    return res.response({}).code(200);
+  } catch (error) {
+    console.log("renewInvitation error \n", error);
+    return res.response({}).code(500);
+  }
+};
+
 // get user details by id
 const getUserById = async (req, res) => {
   const { params, headers } = req;
@@ -201,4 +250,10 @@ const terminateUserById = async (req, res) => {
   }
 };
 
-module.exports = { getUserList, inviteUser, getUserById, terminateUserById };
+module.exports = {
+  getUserList,
+  inviteUser,
+  getUserById,
+  terminateUserById,
+  renewInvitation,
+};
