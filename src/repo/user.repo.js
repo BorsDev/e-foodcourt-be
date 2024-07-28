@@ -1,4 +1,5 @@
 const model = require("../models/__index")["user"];
+const { Op } = require("sequelize");
 
 const findByEmail = async (email) => {
   const data = await model.findOne({ where: { email } });
@@ -6,4 +7,15 @@ const findByEmail = async (email) => {
   return { registered: true, data };
 };
 
-module.exports = { findByEmail };
+const updateExpiredUser = async (email) => {
+  try {
+    await model.update(
+      { status: "expired" },
+      { where: { email: { [Op.in]: email } } },
+    );
+  } catch (error) {
+    console.log("updateExpiredUser error");
+  }
+};
+
+module.exports = { findByEmail, updateExpiredUser };

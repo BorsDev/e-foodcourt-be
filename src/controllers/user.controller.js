@@ -4,11 +4,14 @@ const { QueryTypes } = require("sequelize");
 const { validateEmail, uniqueEmail } = require("../helper/auth.helper");
 const { validateContent } = require("../helper/form.helper");
 const userModel = require("../models/__index")["user"];
-const { findByEmail } = require("../repo/user.repo");
+const { findByEmail, updateExpiredUser } = require("../repo/user.repo");
 const authTokenModel = require("../models/__index")["authToken"];
 
 // invite code
-const { addInviteCodes } = require("../repo/invite_code.repo");
+const {
+  addInviteCodes,
+  getExpiredCodeEmail,
+} = require("../repo/invite_code.repo");
 const { generateCode } = require("../helper/inviteCode.helper");
 
 const getUserList = async (req, res) => {
@@ -22,6 +25,9 @@ const getUserList = async (req, res) => {
   if (!isValid) {
     return res.response({ msg: "Unauthorized" }).code(401);
   }
+
+  const expiredEmail = await getExpiredCodeEmail(Date.now());
+  await updateExpiredUser(expiredEmail.data);
 
   // if query not provided, returned default stuffs
   const page = query.page ? query.page : 0;
@@ -43,7 +49,6 @@ const getUserList = async (req, res) => {
   });
 
   let data = [];
-
   // function to extract fullname from the createdById
   const getFullName = (id) => {
     if (id == "") return "system";
