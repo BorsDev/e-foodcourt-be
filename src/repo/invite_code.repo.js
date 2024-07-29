@@ -1,4 +1,5 @@
 const model = require("../models/__index")["inviteCode"];
+const { raw } = require("mysql2");
 const { Op } = require("sequelize");
 
 const addInviteCodes = async (data) => {
@@ -8,6 +9,21 @@ const addInviteCodes = async (data) => {
   } catch (error) {
     return { isOk: false, error };
   }
+};
+
+const getCodeInfo = async (code) => {
+  try {
+    const data = await model.findOne({ where: { code }, raw: true });
+    if (!data) return { isOK: false };
+    return { isOK: true, data };
+  } catch (error) {
+    console.log(error);
+    return { isOK: false };
+  }
+};
+
+const deleteCode = async (code) => {
+  await model.destroy({ where: { code } });
 };
 
 const getExpiredCodeEmail = async (currentTime) => {
@@ -38,4 +54,10 @@ const updateInviteCode = async (data, email) => {
   }
 };
 
-module.exports = { addInviteCodes, getExpiredCodeEmail, updateInviteCode };
+module.exports = {
+  addInviteCodes,
+  getExpiredCodeEmail,
+  updateInviteCode,
+  getCodeInfo,
+  deleteCode,
+};

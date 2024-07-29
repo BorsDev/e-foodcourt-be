@@ -16,6 +16,8 @@ const {
   addInviteCodes,
   getExpiredCodeEmail,
   updateInviteCode,
+  getCodeInfo,
+  deleteCode,
 } = require("../repo/invite_code.repo");
 const { generateCode } = require("../helper/inviteCode.helper");
 
@@ -150,6 +152,26 @@ const inviteUser = async (req, res) => {
   }
 };
 
+const validateInvitation = async (req, res) => {
+  const { params } = req;
+  const { code } = params || {};
+  const existCode = await getCodeInfo(code);
+  if (!existCode.isOK) return res.response({}).code(400);
+
+  const currentTime = Date.now();
+  console.log(existCode);
+  const info = {
+    email: existCode.data.email,
+    expiredAt: existCode.data.expiredAt,
+  };
+  if (currentTime > info.expiredAt) {
+    await updateExpiredUser([info.email]);
+    return res.response({}).code(400);
+  }
+
+  return res.response({ data: info }).code(200);
+};
+
 const renewInvitation = async (req, res) => {
   const { headers, payload } = req;
 
@@ -256,4 +278,5 @@ module.exports = {
   getUserById,
   terminateUserById,
   renewInvitation,
+  validateInvitation,
 };
