@@ -9,66 +9,89 @@ const {
 } = require("../helper/auth.helper");
 const { sequelize } = require("../models/__index");
 const userModel = require("../models/__index")["user"];
+const { findByEmail, create, updateInvitedUser } = require("../repo/user.repo");
 const authTokenModel = require("../models/__index")["authToken"];
+const { getCodeInfo, deleteCode } = require("../repo/invite_code.repo");
 
 const registerController = async (req, res) => {
-  // params validation
-  const { type, role, method } = req.query || {};
-  if (!type || !role || !method)
-    return res.response({ errors: "Missing Params" }).code(400);
+  const { query, payload } = req;
 
-  // payload validation
-  const { email, fullName, password } = req.payload || {};
+  const { type, method } = query || {};
+  if (!type || !method)
+    return res.response({ errors: "missing_params" }).code(400);
+
+  const { email, fullName, password } = payload || {};
   if (!email || !fullName || !password)
-    return res.response({ errors: "Missing Data" }).code(400);
+    return res.response({ errors: "missing_data" }).code(400);
 
-  // errors
   let errors = {};
   let isError = false;
 
-  // email validation
   const isEmailValid = validateEmail(email);
-
-  // email not valid format
   if (!isEmailValid) {
     isError = true;
     errors.emailErr = "Email is invalid";
   }
 
-  // if email not unique
-  const isEmailUnique = userModel.findOne({ where: { email } });
-
-  if (!isEmailUnique) {
-    isError = true;
-    errors.emailErr = "Email is registered";
-  }
-
-  //password validation
   const isPassValid = validatePassword(password);
   if (!isPassValid.isOK) {
     isError = true;
     errors.passErrs = isPassValid.errs;
   }
+  const hashedPassword = await encryptPassword(password);
 
-  // return validation error
-  if (isError) return res.response({ errors }).code(400);
+  if (type == "provider" && method == "manual") {
+    const isEmailUnique = await findByEmail(email);
+    if (isEmailUnique.registered) {
+      isError = true;
+      errors.emailErr = "Email is registered";
+    }
+    if (isError) return res.response({ errors }).code(400);
 
-  //return success
-  try {
-    const hashedPassword = await encryptPassword(password);
-    await userModel.create({
-      email,
-      fullName,
-      role,
-      password: hashedPassword,
-      status: "active",
-      createdById: "",
-    });
-    return res.response({}).code(200);
-  } catch (error) {
-    console.log(error);
-    return res.response({ errors: "Server Error" }).code(200);
+    try {
+      await create({
+        email,
+        fullName,
+        role: "owner",
+        password: hashedPassword,
+        status: "active",
+        createdById: "",
+      });
+      return res.response({}).code(200);
+    } catch (error) {
+      console.log(error);
+      return res.response({ errors: "Server Error" }).code(200);
+    }
   }
+
+  console.log(type, method);
+  if (type == "provider" && method == "invite") {
+    const { code } = query || {};
+    if (!code)
+      return res.response({ type: "mising_params", fields: "code" }).code(400);
+
+    const userInfoByCode = await getCodeInfo(code);
+    if (!userInfoByCode.isOK)
+      return res.response({ type: "invalid", fields: "code" }).code(400);
+
+    const invitedEmail = userInfoByCode.data.email;
+    const userData = await findByEmail(invitedEmail);
+    if (userData.data.status != "invited")
+      return res.response({ type: "", fields: "code" }).code(400);
+
+    if (email != invitedEmail)
+      return res.response({ type: "invalid", fields: "email" }).code(400);
+
+    try {
+      await updateInvitedUser({ fullName, hashedPassword }, email);
+      await deleteCode(code);
+      return res.response({}).code(200);
+    } catch (error) {
+      console.log(error);
+      return res.response({}).code(400);
+    }
+  }
+  return res.response({ type: "invalid", fields: "method" }).code(400);
 };
 
 const loginController = async (req, res) => {

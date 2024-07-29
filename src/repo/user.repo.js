@@ -1,12 +1,31 @@
 const model = require("../models/__index")["user"];
 const { Op } = require("sequelize");
 
+const create = async (data) => {
+  try {
+    await model.create({ ...data });
+    return { isOK: true };
+  } catch (error) {
+    console.log("Logging from create User", error);
+    return { isOK: false, error };
+  }
+};
+const updateInvitedUser = async (data, email) => {
+  console.log(data);
+  try {
+    await model.update({ ...data }, { where: { email } });
+    return { isOK: true };
+  } catch (error) {
+    console.log("error from updateInvitedUser", error);
+    return { isOK: false };
+  }
+};
+
 const findByEmail = async (email) => {
   const data = await model.findOne({ where: { email } });
   if (!data) return { registered: false };
   return { registered: true, data };
 };
-
 const updateExpiredUser = async (email) => {
   try {
     await model.update(
@@ -25,4 +44,10 @@ const updateStatus = async (status, email) => {
   }
 };
 
-module.exports = { findByEmail, updateExpiredUser, updateStatus };
+module.exports = {
+  create,
+  updateInvitedUser,
+  findByEmail,
+  updateExpiredUser,
+  updateStatus,
+};
