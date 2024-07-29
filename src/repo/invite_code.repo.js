@@ -1,5 +1,4 @@
 const model = require("../models/__index")["inviteCode"];
-const { raw } = require("mysql2");
 const { Op } = require("sequelize");
 
 const addInviteCodes = async (data) => {
@@ -7,7 +6,8 @@ const addInviteCodes = async (data) => {
     await model.bulkCreate(data);
     return { isOK: true };
   } catch (error) {
-    return { isOk: false, error };
+    console.log("Error from addInviteCodes: \n", error);
+    return { isOk: false };
   }
 };
 
@@ -17,13 +17,19 @@ const getCodeInfo = async (code) => {
     if (!data) return { isOK: false };
     return { isOK: true, data };
   } catch (error) {
-    console.log(error);
+    console.log("Error from getCodeInfo: \n", error);
     return { isOK: false };
   }
 };
 
 const deleteCode = async (code) => {
-  await model.destroy({ where: { code } });
+  try {
+    await model.destroy({ where: { code } });
+    return { isOK: true };
+  } catch (error) {
+    console.log("Error from deleteCode: \n", error);
+    return { isOK: false };
+  }
 };
 
 const getExpiredCodeEmail = async (currentTime) => {
@@ -31,13 +37,9 @@ const getExpiredCodeEmail = async (currentTime) => {
     const data = await model.findAll({
       attributes: ["email"],
       where: { expiredAt: { [Op.lt]: currentTime } },
+      raw: true,
     });
-
-    let emails = [];
-    data.forEach((item) => {
-      emails.push(item.dataValues.email);
-    });
-    return { isOK: true, data: emails };
+    return { isOK: true, data };
   } catch (error) {
     console.log("Error from getExpiredCodeEmail: \n", error);
     return { isOK: false };
