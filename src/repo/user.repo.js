@@ -6,7 +6,7 @@ const create = async (data) => {
     await model.create({ ...data });
     return { isOK: true };
   } catch (error) {
-    console.log("Logging from create User", error);
+    console.log("Logging from create User \n", error);
     return { isOK: false, error };
   }
 };
@@ -16,8 +16,8 @@ const updateInvitedUser = async (data, email) => {
     await model.update({ ...data }, { where: { email } });
     return { isOK: true };
   } catch (error) {
-    console.log("error from updateInvitedUser", error);
-    return { isOK: false };
+    console.log("error from updateInvitedUser \n", error);
+    return { isOK: false, error };
   }
 };
 
@@ -26,6 +26,7 @@ const findByEmail = async (email) => {
   if (!data) return { registered: false };
   return { registered: true, data };
 };
+
 const updateExpiredUser = async (email) => {
   try {
     await model.update(
@@ -33,14 +34,17 @@ const updateExpiredUser = async (email) => {
       { where: { email: { [Op.in]: email } } },
     );
   } catch (error) {
-    console.log("updateExpiredUser error");
+    console.log("updateExpiredUser error \n", error);
+    return { isOK: false, error };
   }
 };
+
 const updateStatus = async (status, email) => {
   try {
     await model.update({ status }, { where: { email } });
   } catch (error) {
     console.log("updateStatus error \n", error);
+    return { isOK: false, error };
   }
 };
 
