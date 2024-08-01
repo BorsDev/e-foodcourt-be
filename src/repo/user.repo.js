@@ -11,9 +11,8 @@ const create = async (data) => {
   }
 };
 const updateInvitedUser = async (data, email) => {
-  console.log(data);
   try {
-    await model.update({ ...data }, { where: { email } });
+    await model.update({ ...data, status: "active" }, { where: { email } });
     return { isOK: true };
   } catch (error) {
     console.log("error from updateInvitedUser \n", error);

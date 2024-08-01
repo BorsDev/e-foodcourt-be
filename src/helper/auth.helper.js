@@ -52,9 +52,16 @@ const validatePassword = (password) => {
 };
 
 const encryptPassword = async (password) => {
+  const isValid = validatePassword(password);
+  if (!isValid.isOK)
+    return {
+      isOK: false,
+      errs: isValid.errs,
+    };
+
   const saltRound = 10;
   const hashedPassword = await bcrypt.hash(password.toString(), saltRound);
-  return hashedPassword;
+  return { isOK: true, password: hashedPassword };
 };
 
 const comparePassword = async (password, hashedPassword) => {

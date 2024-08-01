@@ -1,97 +1,108 @@
-const { QueryTypes, where } = require("sequelize");
+// db
+const { sequelize } = require("../models/__index");
+const authTokenModel = require("../models/__index")["authToken"];
+
+// helper
+const { validateContent } = require("../helper/form.helper");
 const {
-  validateEmail,
-  validatePassword,
   encryptPassword,
   comparePassword,
   generateAuthToken,
   verifyToken,
+  uniqueEmail,
 } = require("../helper/auth.helper");
-const { sequelize } = require("../models/__index");
-const userModel = require("../models/__index")["user"];
+
+// repo
 const { findByEmail, create, updateInvitedUser } = require("../repo/user.repo");
-const authTokenModel = require("../models/__index")["authToken"];
 const { getCodeInfo, deleteCode } = require("../repo/invite_code.repo");
+
+// usecase
+const {
+  regularProviderRegistration,
+} = require("../usecase/regularProviderRegistration");
+const {
+  InvitedProviderRegistration,
+} = require("../usecase/InvitedProviderRegistration");
 
 const registerController = async (req, res) => {
   const { query, payload } = req;
 
-  const { type, method } = query || {};
-  if (!type || !method)
-    return res.response({ errors: "missing_params" }).code(400);
+  const requiredQuery = ["type", "method"];
+  const validateQuery = validateContent(requiredQuery, query || {});
+  if (!validateQuery.isValid) {
+    return res
+      .response({ type: "missing_params", fields: validateQuery.err })
+      .code(400);
+  }
 
-  const { email, fullName, password } = payload || {};
-  if (!email || !fullName || !password)
-    return res.response({ errors: "missing_data" }).code(400);
+  const { type, method } = query;
+  const availType = ["provider"];
+  const supportedType = availType.includes(type);
+  if (!supportedType) {
+    return res.response({
+      type: "unsupported",
+      value: query.type,
+      availType,
+    });
+  }
+
+  const availMethod = ["manual", "invited"];
+  const supportedMethod = availMethod.includes(method);
+  if (!supportedMethod) {
+    return res.response({
+      type: "unsupported",
+      value: query.method,
+      availMethod,
+    });
+  }
+
+  const requiredPayload = ["email", "fullName", "password"];
+  const validatePayload = validateContent(requiredPayload, payload || {});
+  if (!validatePayload.isValid) {
+    return res
+      .response({ type: "missing_data", fields: validatePayload.err })
+      .code(400);
+  }
 
   let errors = {};
-  let isError = false;
-
-  const isEmailValid = validateEmail(email);
-  if (!isEmailValid) {
-    isError = true;
-    errors.emailErr = "Email is invalid";
-  }
-
-  const isPassValid = validatePassword(password);
-  if (!isPassValid.isOK) {
-    isError = true;
-    errors.passErrs = isPassValid.errs;
-  }
-  const hashedPassword = await encryptPassword(password);
-
+  let statusCode = 200;
   if (type == "provider" && method == "manual") {
-    const isEmailUnique = await findByEmail(email);
-    if (isEmailUnique.registered) {
-      isError = true;
-      errors.emailErr = "Email is registered";
-    }
-    if (isError) return res.response({ errors }).code(400);
-
-    try {
-      await create({
-        email,
-        fullName,
-        role: "owner",
-        password: hashedPassword,
-        status: "active",
-        createdById: "",
-      });
-      return res.response({}).code(200);
-    } catch (error) {
-      console.log(error);
-      return res.response({ errors: "Server Error" }).code(200);
-    }
+    const registration = await regularProviderRegistration(
+      payload,
+      findByEmail,
+      uniqueEmail,
+      encryptPassword,
+      create,
+    );
+    statusCode = registration.statusCode;
+    if (!registration.isOK) errors = registration.errors;
   }
 
-  console.log(type, method);
-  if (type == "provider" && method == "invite") {
-    const { code } = query || {};
-    if (!code)
-      return res.response({ type: "mising_params", fields: "code" }).code(400);
-
-    const userInfoByCode = await getCodeInfo(code);
-    if (!userInfoByCode.isOK)
-      return res.response({ type: "invalid", fields: "code" }).code(400);
-
-    const invitedEmail = userInfoByCode.data.email;
-    const userData = await findByEmail(invitedEmail);
-    if (userData.data.status != "invited")
-      return res.response({ type: "", fields: "code" }).code(400);
-
-    if (email != invitedEmail)
-      return res.response({ type: "invalid", fields: "email" }).code(400);
-
-    try {
-      await updateInvitedUser({ fullName, hashedPassword }, email);
-      await deleteCode(code);
-      return res.response({}).code(200);
-    } catch (error) {
-      console.log(error);
-      return res.response({}).code(400);
-    }
+  if (type == "provider" && method == "invited") {
+    const code = query.code;
+    const registration = await InvitedProviderRegistration(
+      code,
+      payload,
+      getCodeInfo,
+      findByEmail,
+      encryptPassword,
+      updateInvitedUser,
+      deleteCode,
+    );
+    statusCode = registration.statusCode;
+    if (!registration.isOK) errors = registration.errors;
   }
-  return res.response({ type: "invalid", fields: "method" }).code(400);
+
+  // returning segment
+  if (statusCode == 500)
+    return res.response({ type: "server_error" }).code(statusCode);
+
+  if (statusCode == 401) return res.response(errors).code(statusCode);
+
+  if (statusCode == 400)
+    return res.response({ type: "validation", errors }).code(statusCode);
+
+  return res.response({}).code(statusCode);
 };
 
 const loginController = async (req, res) => {
@@ -151,4 +162,8 @@ const logoutController = async (req, res) => {
   }
 };
 
-module.exports = { registerController, loginController, logoutController };
+module.exports = {
+  registerController,
+  loginController,
+  logoutController,
+};
