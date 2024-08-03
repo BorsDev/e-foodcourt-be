@@ -10,6 +10,28 @@ const create = async (data) => {
     return { isOK: false, error };
   }
 };
+
+const findById = async (id) => {
+  try {
+    const user = await model.findByPk(id);
+    if (!user)
+      return {
+        isOK: false,
+        error: "not_found",
+      };
+    return {
+      isOK: true,
+      data: user,
+    };
+  } catch (errors) {
+    console.log("error from user.findByPk", errors);
+    return {
+      isOK: false,
+      error: "server_error",
+    };
+  }
+};
+
 const updateInvitedUser = async (data, email) => {
   try {
     await model.update({ ...data, status: "active" }, { where: { email } });
@@ -38,19 +60,31 @@ const updateExpiredUser = async (email) => {
   }
 };
 
-const updateStatus = async (status, email) => {
+const updateStatus = async (status, fields) => {
   try {
-    await model.update({ status }, { where: { email } });
+    await model.update({ status }, { where: { ...fields } });
   } catch (error) {
     console.log("updateStatus error \n", error);
     return { isOK: false, error };
   }
 };
 
+const update = async (data, conditions) => {
+  try {
+    await model.update(data, { where: { ...conditions } });
+    return { isOK: true };
+  } catch (errors) {
+    console.log("update error \n", errors);
+    return { isOK: false, errors };
+  }
+};
+
 module.exports = {
   create,
-  updateInvitedUser,
+  findById,
   findByEmail,
+  update,
+  updateInvitedUser,
   updateExpiredUser,
   updateStatus,
 };

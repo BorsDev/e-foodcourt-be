@@ -6,6 +6,8 @@ const { validateContent } = require("../helper/form.helper");
 const userModel = require("../models/__index")["user"];
 const {
   findByEmail,
+  findById,
+  update,
   updateExpiredUser,
   updateStatus,
 } = require("../repo/user.repo");
@@ -33,8 +35,15 @@ const getUserList = async (req, res) => {
     return res.response({ msg: "Unauthorized" }).code(401);
   }
 
-  const expiredEmail = await getExpiredCodeEmail(Date.now());
-  await updateExpiredUser(expiredEmail.data);
+  const expiredUser = await getExpiredCodeEmail(Date.now());
+
+  const expiredEmail = [];
+  expiredUser.data.forEach((user) => {
+    expiredEmail.push(user.email);
+  });
+  console.log(expiredEmail);
+
+  await updateExpiredUser(expiredEmail);
 
   // if query not provided, returned default stuffs
   const page = query.page ? query.page : 0;
@@ -216,7 +225,6 @@ const renewInvitation = async (req, res) => {
   }
 };
 
-// get user details by id
 const getUserById = async (req, res) => {
   const { params, headers } = req;
   // Token Validation
@@ -272,11 +280,99 @@ const terminateUserById = async (req, res) => {
   }
 };
 
+const inactivateUser = async (req, res) => {
+  const { params, headers } = req || {};
+  const { token } = headers || {};
+  if (!token) return res.response({ errors: "Missing Token" }).code(400);
+
+  const { isValid } = await verifyToken(token);
+  if (!isValid) {
+    return res.response({ msg: "unauthorized" }).code(401);
+  }
+
+  let isOK = true;
+  let statusCode = 200;
+  let errors = {
+    type: "",
+    status: {},
+  };
+  const { id } = params || {};
+  if (!id)
+    return res.respons({ type: "missing_params", fields: "userId" }).code(400);
+
+  const isExist = await findById(id);
+  if (!isExist.isOK) {
+    isOK = false;
+    errors = isExist.error;
+    statusCode = isExist.error == "not_found" ? 404 : 500;
+  }
+
+  if (isExist.data.status != "active") {
+    isOK = false;
+    errors.type = "validation";
+    errors.status.data = isExist.data.status;
+    errors.status.action = "inactive";
+  }
+
+  const result = await update({ status: "inactive" }, { id });
+  if (!result.isOK) {
+    isOK = false;
+    errors.random = result.errors;
+  }
+  if (isOK) return res.response({}).code(statusCode);
+  return res.response(errors).code(statusCode);
+};
+
+const activateUser = async (req, res) => {
+  const { params, headers } = req || {};
+  const { token } = headers || {};
+  if (!token) return res.response({ errors: "Missing Token" }).code(400);
+
+  const { isValid } = await verifyToken(token);
+  if (!isValid) {
+    return res.response({ msg: "unauthorized" }).code(401);
+  }
+
+  let isOK = true;
+  let statusCode = 200;
+  let errors = {
+    type: "",
+    status: {},
+  };
+  const { id } = params || {};
+  if (!id)
+    return res.respons({ type: "missing_params", fields: "userId" }).code(400);
+
+  const isExist = await findById(id);
+  if (!isExist.isOK) {
+    isOK = false;
+    errors = isExist.error;
+    statusCode = isExist.error == "not_found" ? 404 : 500;
+  }
+
+  if (isExist.data.status != "inactive") {
+    isOK = false;
+    errors.type = "validation";
+    errors.status.data = isExist.data.status;
+    errors.status.action = "active";
+  }
+
+  const result = await update({ status: "active" }, { id });
+  if (!result.isOK) {
+    isOK = false;
+    errors.random = result.errors;
+  }
+  if (isOK) return res.response({}).code(statusCode);
+  return res.response(errors).code(statusCode);
+};
+
 module.exports = {
   getUserList,
   inviteUser,
   getUserById,
-  terminateUserById,
   renewInvitation,
   validateInvitation,
+  terminateUserById,
+  inactivateUser,
+  activateUser,
 };
