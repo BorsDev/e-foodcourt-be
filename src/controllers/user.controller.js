@@ -3,8 +3,8 @@ const { sequelize } = require("../models/__index");
 const { QueryTypes } = require("sequelize");
 const { uniqueEmail } = require("../helper/auth.helper");
 const { validateContent } = require("../helper/form.helper");
-const userModel = require("../models/__index")["user"];
 const {
+  bulkCreate,
   findByEmail,
   findById,
   update,
@@ -148,7 +148,7 @@ const inviteUser = async (req, res) => {
   if (isError) return res.response({ type: "validation", errors }).code(400);
 
   try {
-    await userModel.bulkCreate(newUser);
+    await bulkCreate(newUser);
     await addInviteCodes(invitations);
 
     return res.response({}).code(200);
@@ -235,13 +235,15 @@ const getUserById = async (req, res) => {
 
   // get id
   const { id } = params;
-  const user = await userModel.findByPk(id);
+  const user = await findById(id);
   if (!user) return res.response({}).code(404);
   const data = {
     id: user.id,
     fullName: user.fullName,
     email: user.email,
     role: user.role,
+    status: user.status,
+    createdAt: user.createdAt,
   };
   return res.response({ data });
 };

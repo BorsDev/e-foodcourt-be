@@ -11,6 +11,16 @@ const create = async (data) => {
   }
 };
 
+const bulkCreate = async (data) => {
+  try {
+    await model.bulkCreate(data);
+    return { isOK: true };
+  } catch (error) {
+    console.log("Logging from createBulk \n", error);
+    return { isOK: false, error };
+  }
+};
+
 const findById = async (id) => {
   try {
     const user = await model.findByPk(id);
@@ -81,6 +91,7 @@ const update = async (data, conditions) => {
 
 module.exports = {
   create,
+  bulkCreate,
   findById,
   findByEmail,
   update,
