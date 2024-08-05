@@ -1,7 +1,7 @@
 const { verifyToken } = require("../helper/auth.helper");
 const { sequelize } = require("../models/__index");
 const { QueryTypes } = require("sequelize");
-const { validateEmail, uniqueEmail } = require("../helper/auth.helper");
+const { uniqueEmail } = require("../helper/auth.helper");
 const { validateContent } = require("../helper/form.helper");
 const userModel = require("../models/__index")["user"];
 const {
@@ -11,7 +11,6 @@ const {
   updateExpiredUser,
   updateStatus,
 } = require("../repo/user.repo");
-const authTokenModel = require("../models/__index")["authToken"];
 
 // invite code
 const {
@@ -19,7 +18,6 @@ const {
   getExpiredCodeEmail,
   updateInviteCode,
   getCodeInfo,
-  deleteCode,
 } = require("../repo/invite_code.repo");
 const { generateCode } = require("../helper/inviteCode.helper");
 
@@ -41,7 +39,6 @@ const getUserList = async (req, res) => {
   expiredUser.data.forEach((user) => {
     expiredEmail.push(user.email);
   });
-  console.log(expiredEmail);
 
   await updateExpiredUser(expiredEmail);
 
@@ -168,7 +165,6 @@ const validateInvitation = async (req, res) => {
   if (!existCode.isOK) return res.response({}).code(400);
 
   const currentTime = Date.now();
-  console.log(existCode);
   const info = {
     email: existCode.data.email,
     expiredAt: existCode.data.expiredAt,
@@ -248,36 +244,6 @@ const getUserById = async (req, res) => {
     role: user.role,
   };
   return res.response({ data });
-};
-// edit user
-// terminate user
-const terminateUserById = async (req, res) => {
-  const { params, headers } = req;
-  // Token Validation
-  const { token } = headers || {};
-  if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-  // Decode the token & search for existing token
-  const { isValid, userId } = await verifyToken(token);
-  if (!isValid) {
-    return res.response({ msg: "Unauthorized" }).code(401);
-  }
-  // check user existance
-  const { id } = params;
-  const user = await userModel.findByPk(id);
-
-  // if data not found
-  if (!user) return res.response({}).code(404);
-
-  // if the targeted data is actor data
-  if (user.id == userId) return res.response({}).code(403);
-
-  try {
-    await user.destroy();
-    return res.response({}).code(200);
-  } catch (error) {
-    return res.response({ msg: "server error" }).code(500);
-  }
 };
 
 const inactivateUser = async (req, res) => {
@@ -366,13 +332,42 @@ const activateUser = async (req, res) => {
   return res.response(errors).code(statusCode);
 };
 
+// const terminateUserById = async (req, res) => {
+//   const { params, headers } = req;
+//   // Token Validation
+//   const { token } = headers || {};
+//   if (!token) return res.response({ errors: "Missing Token" }).code(400);
+
+//   // Decode the token & search for existing token
+//   const { isValid, userId } = await verifyToken(token);
+//   if (!isValid) {
+//     return res.response({ msg: "Unauthorized" }).code(401);
+//   }
+//   // check user existance
+//   const { id } = params;
+//   const user = await userModel.findByPk(id);
+
+//   // if data not found
+//   if (!user) return res.response({}).code(404);
+
+//   // if the targeted data is actor data
+//   if (user.id == userId) return res.response({}).code(403);
+
+//   try {
+//     await user.destroy();
+//     return res.response({}).code(200);
+//   } catch (error) {
+//     return res.response({ msg: "server error" }).code(500);
+//   }
+// };
+
 module.exports = {
   getUserList,
   inviteUser,
   getUserById,
   renewInvitation,
   validateInvitation,
-  terminateUserById,
+  // terminateUserById,
   inactivateUser,
   activateUser,
 };

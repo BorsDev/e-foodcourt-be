@@ -1,12 +1,12 @@
 const {
   getUserList,
   getUserById,
-  terminateUserById,
   inviteUser,
   renewInvitation,
   validateInvitation,
   inactivateUser,
   activateUser,
+  // terminateUserById,
 } = require("../controllers/user.controller");
 
 const userRoutes = [
@@ -17,7 +17,7 @@ const userRoutes = [
   { method: "PUT", path: "/users/inactivate/{id}", handler: inactivateUser },
   { method: "PUT", path: "/users/activate/{id}", handler: activateUser },
   { method: "GET", path: "/users/{id}", handler: getUserById },
-  { method: "DELETE", path: "/users/{id}", handler: terminateUserById },
+  // { method: "DELETE", path: "/users/{id}", handler: terminateUserById },
 ];
 
 module.exports = userRoutes;
