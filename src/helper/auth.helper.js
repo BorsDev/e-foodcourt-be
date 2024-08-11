@@ -3,9 +3,25 @@ const passwordValidator = require("password-validator");
 const Jwt = require("@hapi/jwt");
 require("dotenv").config();
 
+// Auth Token DB
+const authTokenModel = require("../models/__index")["authToken"];
+
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
+};
+
+const uniqueEmail = async (email, findByEmail) => {
+  let err = [];
+  const isValid = validateEmail(email);
+  const isRegistered = await findByEmail(email);
+
+  if (!isValid) err.push("invalid");
+  if (isRegistered.registered) err.push("registered");
+
+  if (!isValid || isRegistered.registered)
+    return { isValid: false, err: { address: email, err } };
+  return { isValid: true };
 };
 
 const validatePassword = (password) => {
@@ -36,9 +52,16 @@ const validatePassword = (password) => {
 };
 
 const encryptPassword = async (password) => {
+  const isValid = validatePassword(password);
+  if (!isValid.isOK)
+    return {
+      isOK: false,
+      errs: isValid.errs,
+    };
+
   const saltRound = 10;
   const hashedPassword = await bcrypt.hash(password.toString(), saltRound);
-  return hashedPassword;
+  return { isOK: true, password: hashedPassword };
 };
 
 const comparePassword = async (password, hashedPassword) => {
@@ -63,21 +86,25 @@ const generateAuthToken = async (userId) => {
 
 const verifyToken = async (token) => {
   const decodedToken = Jwt.token.decode(token);
+  const { payload } = decodedToken.decoded;
+  const { userId } = payload;
+  const options = {};
 
-  const verify = (artifact, secret, options = {}) => {
-    try {
-      const payload = artifact.decoded.payload;
-      Jwt.token.verify(artifact, secret, options);
-      return { isValid: true, ...payload };
-    } catch (err) {
-      return {
-        isValid: false,
-        error: err.message,
-      };
-    }
-  };
+  const isExist = await authTokenModel.findOne({
+    where: { token },
+  });
+  if (!token) return { isValid: false };
 
-  return verify(decodedToken, process.env.AUTH_SECRET);
+  try {
+    Jwt.token.verify(decodedToken, process.env.AUTH_SECRET, options);
+    if (isExist.userId != userId) return { isValid: false };
+    return {
+      isValid: true,
+      userId: payload.userId,
+    };
+  } catch (err) {
+    return { isValid: false };
+  }
 };
 
 module.exports = {
@@ -87,4 +114,5 @@ module.exports = {
   comparePassword,
   generateAuthToken,
   verifyToken,
+  uniqueEmail,
 };

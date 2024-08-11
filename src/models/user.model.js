@@ -28,11 +28,20 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DataTypes.ENUM("owner", "admin"),
       allowNull: false,
     },
+    status: {
+      type: Sequelize.DataTypes.ENUM("invited", "active", "inactive"),
+      allowNull: false,
+    },
+    createdById: {
+      type: Sequelize.DataTypes.UUID,
+      allowNull: false,
+      autoIncrement: false,
+    },
     password: {
       type: Sequelize.DataTypes.STRING,
       allowNull: false,
     },
   });
-  //   User.sync(); // comment out after the database created
+  // User.sync({ force: true }); // comment out after the database created
   return User;
 };

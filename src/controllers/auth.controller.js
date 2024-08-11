@@ -1,72 +1,108 @@
-const { QueryTypes, where } = require("sequelize");
+// db
+const { sequelize } = require("../models/__index");
+const authTokenModel = require("../models/__index")["authToken"];
+
+// helper
+const { validateContent } = require("../helper/form.helper");
 const {
-  validateEmail,
-  validatePassword,
   encryptPassword,
   comparePassword,
   generateAuthToken,
   verifyToken,
+  uniqueEmail,
 } = require("../helper/auth.helper");
-const { sequelize } = require("../models/__index");
-const userModel = require("../models/__index")["user"];
-const authTokenModel = require("../models/__index")["authToken"];
+
+// repo
+const { findByEmail, create, updateInvitedUser } = require("../repo/user.repo");
+const { getCodeInfo, deleteCode } = require("../repo/invite_code.repo");
+
+// usecase
+const {
+  regularProviderRegistration,
+} = require("../usecase/regularProviderRegistration");
+const {
+  InvitedProviderRegistration,
+} = require("../usecase/InvitedProviderRegistration");
 
 const registerController = async (req, res) => {
-  // params validation
-  const { type, role, method } = req.query || {};
-  if (!type || !role || !method)
-    return res.response({ errors: "Missing Params" }).code(400);
+  const { query, payload } = req;
 
-  // payload validation
-  const { email, fullName, password } = req.payload || {};
-  if (!email || !fullName || !password)
-    return res.response({ errors: "Missing Data" }).code(400);
-
-  // errors
-  let errors = {};
-  let isError = false;
-
-  // email validation
-  const isEmailValid = validateEmail(email);
-
-  // email not valid format
-  if (!isEmailValid) {
-    isError = true;
-    errors.emailErr = "Email is invalid";
+  const requiredQuery = ["type", "method"];
+  const validateQuery = validateContent(requiredQuery, query || {});
+  if (!validateQuery.isValid) {
+    return res
+      .response({ type: "missing_params", fields: validateQuery.err })
+      .code(400);
   }
 
-  // if email not unique
-  const isEmailUnique = userModel.findOne({ where: { email } });
-
-  if (!isEmailUnique) {
-    isError = true;
-    errors.emailErr = "Email is registered";
-  }
-
-  //password validation
-  const isPassValid = validatePassword(password);
-  if (!isPassValid.isOK) {
-    isError = true;
-    errors.passErrs = isPassValid.errs;
-  }
-
-  // return validation error
-  if (isError) return res.response({ errors }).code(400);
-
-  //return success
-  try {
-    const hashedPassword = await encryptPassword(password);
-    await userModel.create({
-      email,
-      fullName,
-      role,
-      password: hashedPassword,
+  const { type, method } = query;
+  const availType = ["provider"];
+  const supportedType = availType.includes(type);
+  if (!supportedType) {
+    return res.response({
+      type: "unsupported",
+      value: query.type,
+      availType,
     });
-    return res.response({}).code(200);
-  } catch (error) {
-    console.log(error);
-    return res.response({ errors: "Server Error" }).code(200);
   }
+
+  const availMethod = ["manual", "invited"];
+  const supportedMethod = availMethod.includes(method);
+  if (!supportedMethod) {
+    return res.response({
+      type: "unsupported",
+      value: query.method,
+      availMethod,
+    });
+  }
+
+  const requiredPayload = ["email", "fullName", "password"];
+  const validatePayload = validateContent(requiredPayload, payload || {});
+  if (!validatePayload.isValid) {
+    return res
+      .response({ type: "missing_data", fields: validatePayload.err })
+      .code(400);
+  }
+
+  let errors = {};
+  let statusCode = 200;
+  if (type == "provider" && method == "manual") {
+    const registration = await regularProviderRegistration(
+      payload,
+      findByEmail,
+      uniqueEmail,
+      encryptPassword,
+      create,
+    );
+    statusCode = registration.statusCode;
+    if (!registration.isOK) errors = registration.errors;
+  }
+
+  if (type == "provider" && method == "invited") {
+    const code = query.code;
+    const registration = await InvitedProviderRegistration(
+      code,
+      payload,
+      getCodeInfo,
+      findByEmail,
+      encryptPassword,
+      updateInvitedUser,
+      deleteCode,
+    );
+    statusCode = registration.statusCode;
+    if (!registration.isOK) errors = registration.errors;
+  }
+
+  // returning segment
+  if (statusCode == 500)
+    return res.response({ type: "server_error" }).code(statusCode);
+
+  if (statusCode == 401) return res.response(errors).code(statusCode);
+
+  if (statusCode == 400)
+    return res.response({ type: "validation", errors }).code(statusCode);
+
+  return res.response({}).code(statusCode);
 };
 
 const loginController = async (req, res) => {
@@ -106,28 +142,15 @@ const loginController = async (req, res) => {
 };
 
 const logoutController = async (req, res) => {
-  // Token sanitation
-  const { token } = req.payload || {};
+  const { headers } = req;
+  // Token Validation
+  const { token } = headers || {};
   if (!token) return res.response({ errors: "Missing Token" }).code(400);
 
   // Decode the token & search for existing token
-  const { userId, iat, exp, isValid } = await verifyToken(token);
-  const isTokenExist = await authTokenModel.findOne({
-    where: { token },
-  });
-
-  // If token invalid or not exist -> 401
-  if (!isValid || !isTokenExist)
-    return res.response({ errors: "Unauthorized" }).code(401);
-
-  // If the token dont match with the user ID -> 401
-  if (isTokenExist.userId != userId)
-    return res.response({ errors: "Unauthorized" }).code(401);
-
-  // If the token is expired -> destroy the token record in DB
-  if (iat >= exp) {
-    await isTokenExist.destroy();
-    return res.response({ msg: "Expired" }).code(401);
+  const { isValid } = await verifyToken(token);
+  if (!isValid) {
+    return res.response({ msg: "Unauthorized" }).code(401);
   }
 
   // Token valid -> destroy token
@@ -139,4 +162,8 @@ const logoutController = async (req, res) => {
   }
 };
 
-module.exports = { registerController, loginController, logoutController };
+module.exports = {
+  registerController,
+  loginController,
+  logoutController,
+};

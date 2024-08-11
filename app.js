@@ -3,6 +3,7 @@ require("dotenv").config();
 
 // required lib
 const Hapi = require("@hapi/hapi");
+const Qs = require("qs");
 const Sequelize = require("sequelize");
 
 // required routes file
@@ -34,6 +35,9 @@ const init = async () => {
   const server = Hapi.server({
     host: process.env.HOST,
     port: process.env.PORT,
+    query: {
+      parser: (query) => Qs.parse(query),
+    },
   });
 
   server.route(routes);
