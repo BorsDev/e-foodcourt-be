@@ -7,7 +7,7 @@ const {
   inactivateUser,
   activateUser,
   // terminateUserById,
-} = require("../controllers/user.controller");
+} = require("./controller");
 
 const userRoutes = [
   { method: "GET", path: "/users", handler: getUserList },

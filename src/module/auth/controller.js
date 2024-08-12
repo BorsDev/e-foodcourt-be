@@ -1,16 +1,16 @@
 // db
-const { sequelize } = require("../models/__index");
-const authTokenModel = require("../models/__index")["authToken"];
+const { sequelize } = require("./models/__index");
+const authTokenModel = require("./models/__index")["authToken"];
 
 // helper
-const { validateContent } = require("../helper/form.helper");
+const { validateContent } = require("../../helper/form.helper");
 const {
   encryptPassword,
   comparePassword,
   generateAuthToken,
   verifyToken,
   uniqueEmail,
-} = require("../helper/auth.helper");
+} = require("../../helper/auth.helper");
 
 // repo
 const { findByEmail, create, updateInvitedUser } = require("../repo/user.repo");

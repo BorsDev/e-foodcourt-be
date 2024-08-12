@@ -4,7 +4,7 @@ const Jwt = require("@hapi/jwt");
 require("dotenv").config();
 
 // Auth Token DB
-const authTokenModel = require("../models/__index")["authToken"];
+const authTokenModel = require("../module/auth/models/__index")["authToken"];
 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

@@ -1,8 +1,8 @@
-const { verifyToken } = require("../helper/auth.helper");
-const { sequelize } = require("../models/__index");
+const { verifyToken } = require("../../helper/auth.helper");
+const { sequelize } = require("../auth/models/__index");
 const { QueryTypes } = require("sequelize");
-const { uniqueEmail } = require("../helper/auth.helper");
-const { validateContent } = require("../helper/form.helper");
+const { uniqueEmail } = require("../../helper/auth.helper");
+const { validateContent } = require("../../helper/form.helper");
 const {
   bulkCreate,
   findByEmail,
@@ -10,7 +10,7 @@ const {
   update,
   updateExpiredUser,
   updateStatus,
-} = require("../repo/user.repo");
+} = require("./db/repo/user.repo");
 
 // invite code
 const {
@@ -18,8 +18,8 @@ const {
   getExpiredCodeEmail,
   updateInviteCode,
   getCodeInfo,
-} = require("../repo/invite_code.repo");
-const { generateCode } = require("../helper/inviteCode.helper");
+} = require("./db/repo/invite_code.repo");
+const { generateCode } = require("../../helper/inviteCode.helper");
 
 const getUserList = async (req, res) => {
   const { query, headers } = req;
