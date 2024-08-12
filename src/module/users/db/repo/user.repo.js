@@ -1,4 +1,4 @@
-const model = require("../models/__index")["user"];
+const model = require("../model/__index")["user"];
 const { Op } = require("sequelize");
 
 const create = async (data) => {

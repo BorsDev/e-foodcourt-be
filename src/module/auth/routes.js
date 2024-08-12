@@ -2,7 +2,7 @@ const {
   registerController,
   loginController,
   logoutController,
-} = require("../controllers/auth.controller");
+} = require("./controller");
 
 const authRoutes = [
   {

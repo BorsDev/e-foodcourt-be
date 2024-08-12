@@ -13,16 +13,21 @@ const {
 } = require("../../helper/auth.helper");
 
 // repo
-const { findByEmail, create, updateInvitedUser } = require("../repo/user.repo");
-const { getCodeInfo, deleteCode } = require("../repo/invite_code.repo");
+const {
+  findByEmail,
+  create,
+  updateInvitedUser,
+} = require("../users/db/repo/user.repo");
+const {
+  getCodeInfo,
+  deleteCode,
+} = require("../users/db/repo/invite_code.repo");
 
 // usecase
 const {
   regularProviderRegistration,
-} = require("../usecase/regularProviderRegistration");
-const {
   InvitedProviderRegistration,
-} = require("../usecase/InvitedProviderRegistration");
+} = require("../users/usecase/register");
 
 const registerController = async (req, res) => {
   const { query, payload } = req;

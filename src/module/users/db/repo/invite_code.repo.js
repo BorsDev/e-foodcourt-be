@@ -1,4 +1,4 @@
-const model = require("../models/__index")["inviteCode"];
+const model = require("../model/__index")["inviteCode"];
 const { Op } = require("sequelize");
 
 const addInviteCodes = async (data) => {

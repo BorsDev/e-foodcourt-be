@@ -7,7 +7,7 @@ const Qs = require("qs");
 const Sequelize = require("sequelize");
 
 // required routes file
-const routes = require("./src/routes/__index");
+const routes = require("./routes");
 
 const init = async () => {
   // init database
