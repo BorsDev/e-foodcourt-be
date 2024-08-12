@@ -1,6 +1,4 @@
 const { verifyToken } = require("../../helper/auth.helper");
-const { sequelize } = require("../auth/models/__index");
-const { QueryTypes } = require("sequelize");
 const { uniqueEmail } = require("../../helper/auth.helper");
 const { validateContent } = require("../../helper/form.helper");
 const {
@@ -10,6 +8,7 @@ const {
   update,
   updateExpiredUser,
   updateStatus,
+  userList,
 } = require("./db/repo/user.repo");
 
 // invite code
@@ -47,19 +46,8 @@ const getUserList = async (req, res) => {
   const limit = query.limit ? query.limit : 10;
   const offset = page > 1 ? (page - 1) * limit : 0;
 
-  const q = `
-  SELECT * FROM
-    USERS
-  ORDER BY
-    createdAt
-  LIMIT
-    ${limit}
-  OFFSET
-    ${offset}`;
-
-  const users = await sequelize.query(q, {
-    type: QueryTypes.SELECT,
-  });
+  const usersList = await userList(["createdAt", "ASC"], limit, offset);
+  const users = usersList.data;
 
   let data = [];
   // function to extract fullname from the createdById
@@ -334,42 +322,12 @@ const activateUser = async (req, res) => {
   return res.response(errors).code(statusCode);
 };
 
-// const terminateUserById = async (req, res) => {
-//   const { params, headers } = req;
-//   // Token Validation
-//   const { token } = headers || {};
-//   if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-//   // Decode the token & search for existing token
-//   const { isValid, userId } = await verifyToken(token);
-//   if (!isValid) {
-//     return res.response({ msg: "Unauthorized" }).code(401);
-//   }
-//   // check user existance
-//   const { id } = params;
-//   const user = await userModel.findByPk(id);
-
-//   // if data not found
-//   if (!user) return res.response({}).code(404);
-
-//   // if the targeted data is actor data
-//   if (user.id == userId) return res.response({}).code(403);
-
-//   try {
-//     await user.destroy();
-//     return res.response({}).code(200);
-//   } catch (error) {
-//     return res.response({ msg: "server error" }).code(500);
-//   }
-// };
-
 module.exports = {
   getUserList,
   inviteUser,
   getUserById,
   renewInvitation,
   validateInvitation,
-  // terminateUserById,
   inactivateUser,
   activateUser,
 };

@@ -58,6 +58,21 @@ const findByEmail = async (email) => {
   return { registered: true, data };
 };
 
+const userList = async (order, limit, offset) => {
+  console.log(order);
+
+  const data = await model.findAll({ order: [order], limit, offset });
+  try {
+    return { isOK: true, data };
+  } catch (error) {
+    console.log("error from user.getUserList", errors);
+    return {
+      isOK: false,
+      error: "server_error",
+    };
+  }
+};
+
 const updateExpiredUser = async (email) => {
   try {
     await model.update(
@@ -94,6 +109,7 @@ module.exports = {
   bulkCreate,
   findById,
   findByEmail,
+  userList,
   update,
   updateInvitedUser,
   updateExpiredUser,
