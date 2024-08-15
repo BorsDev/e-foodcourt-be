@@ -1,7 +1,3 @@
-// db
-const { sequelize } = require("./models/__index");
-const authTokenModel = require("./models/__index")["authToken"];
-
 // helper
 const { validateContent } = require("../../helper/form.helper");
 const {
@@ -112,34 +108,26 @@ const registerController = async (req, res) => {
 };
 
 const loginController = async (req, res) => {
-  // Get the credentials from payload -> return 400 if nothing provided
-  const { email, password } = req.payload || {};
-  if (!email || !password)
-    return res.response({ errors: "missing all fields" }).code(400);
+  const { payload } = req;
+  const requiredPayload = ["email", "password"];
+  const validatePayload = validateContent(requiredPayload, payload || {});
+  if (!validatePayload.isValid) {
+    return res
+      .response({ type: "missing_data", fields: validatePayload.err })
+      .code(400);
+  }
 
-  // const new valdiation
-  const isUserToken = await sequelize.query(`
-    select
-      users.id as userId,
-      users.password as pwd,
-      authtokens.token
-    from
-      users left join authtokens on users.id = authtokens.userId
-    where
-      email = '${email}'`);
-
-  const { userId, pwd, token } = isUserToken[0][0] || {};
+  const { email, password } = payload;
+  const isExist = await findByEmail(email);
+  const pwd = isExist.data.password;
+  const userId = isExist.data.password;
   const isPasswordValid = await comparePassword(password, pwd);
   if (!userId || !isPasswordValid)
-    return res.response({ errors: "Invalid Credentials" }).code(400);
+    return res.response({ type: "invalid" }).code(400);
 
-  // Check for existing token, destroy if found any
-  const newtoken = await generateAuthToken(userId);
-  if (token) await authTokenModel.destroy({ where: { userId } });
-
-  // Insert token
   try {
-    await authTokenModel.create({ userId, token: newtoken });
+    const newtoken = await generateAuthToken(userId);
+    await update({ status: "active" }, [userId]);
     return res.response({ token: newtoken }).code(200);
   } catch (error) {
     console.log(error);
