@@ -15,6 +15,7 @@ const {
 // repo
 const {
   findByEmail,
+  update,
   create,
   updateInvitedUser,
 } = require("../users/db/repo/user.repo");
@@ -147,20 +148,9 @@ const loginController = async (req, res) => {
 };
 
 const logoutController = async (req, res) => {
-  const { headers } = req;
-  // Token Validation
-  const { token } = headers || {};
-  if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-  // Decode the token & search for existing token
-  const { isValid } = await verifyToken(token);
-  if (!isValid) {
-    return res.response({ msg: "Unauthorized" }).code(401);
-  }
-
-  // Token valid -> destroy token
+  const { userId } = req.auth.credentials;
   try {
-    await isTokenExist.destroy();
+    await update({ status: "offline" }, [userId]);
     return res.response({ msg: "Logout Successfully" }).code(200);
   } catch (error) {
     return res.response({ errors: "Server Error" }).code(500);

@@ -29,7 +29,13 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false,
     },
     status: {
-      type: Sequelize.DataTypes.ENUM("invited", "active", "inactive"),
+      type: Sequelize.DataTypes.ENUM(
+        "invited",
+        "expired",
+        "active",
+        "inactive",
+        "offline",
+      ),
       allowNull: false,
     },
     createdById: {
