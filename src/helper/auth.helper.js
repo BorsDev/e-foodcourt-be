@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const passwordValidator = require("password-validator");
 const Jwt = require("@hapi/jwt");
+const { findById } = require("../module/users/db/repo/user.repo");
+const { user } = require("../module/users/db/model/__index");
 require("dotenv").config();
 
 const validateEmail = (email) => {
@@ -85,9 +87,13 @@ const auth = async (server, Jwt, secret) => {
   await server.register(Jwt);
   server.auth.strategy("jwt", "jwt", {
     keys: secret,
-    validate: (artifacts, req, res) => {
+    validate: async (artifacts, req, res) => {
       const { userId } = artifacts.decoded.payload;
-      if (!userId) return res.response({ msg: "unauthorized" }).code(401);
+      const isExist = await findById(userId);
+      const status = isExist.data.status;
+
+      if (!userId || status != "active")
+        return res.response({ msg: "unauthorized" }).code(401);
       return {
         isValid: true,
         userId,

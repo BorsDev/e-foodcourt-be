@@ -120,10 +120,9 @@ const loginController = async (req, res) => {
   const { email, password } = payload;
   const isExist = await findByEmail(email);
   const pwd = isExist.data.password;
-  const userId = isExist.data.password;
-  const status = isExist.data.status;
+  const userId = isExist.data.id;
   const isPasswordValid = await comparePassword(password, pwd);
-  if (!userId || !isPasswordValid || status != "offline")
+  if (!userId || !isPasswordValid)
     return res.response({ type: "invalid" }).code(400);
 
   try {
