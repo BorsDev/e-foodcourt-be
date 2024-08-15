@@ -1,4 +1,3 @@
-const { verifyToken } = require("../../helper/auth.helper");
 const { uniqueEmail } = require("../../helper/auth.helper");
 const { validateContent } = require("../../helper/form.helper");
 const {
@@ -21,24 +20,12 @@ const {
 const { generateCode } = require("../../helper/inviteCode.helper");
 
 const getUserList = async (req, res) => {
-  const { query, headers } = req;
-  // Token Validation
-  const { token } = headers || {};
-  if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-  // Decode the token & search for existing token
-  const { isValid } = await verifyToken(token);
-  if (!isValid) {
-    return res.response({ msg: "Unauthorized" }).code(401);
-  }
-
+  const { query } = req;
   const expiredUser = await getExpiredCodeEmail(Date.now());
-
   const expiredEmail = [];
   expiredUser.data.forEach((user) => {
     expiredEmail.push(user.email);
   });
-
   await updateExpiredUser(expiredEmail);
 
   // if query not provided, returned default stuffs
@@ -73,18 +60,7 @@ const getUserList = async (req, res) => {
 };
 
 const inviteUser = async (req, res) => {
-  const { query, headers, payload } = req;
-
-  // validate token
-  const { token } = headers || {};
-  if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-  const { isValid, userId } = await verifyToken(token);
-  if (!isValid) {
-    return res.response({ msg: "Unauthorized" }).code(401);
-  }
-
-  // validate query value
+  const { query, payload } = req;
   const { method, type } = query || {};
   if (!method || !type) {
     let err = [];
@@ -166,17 +142,7 @@ const validateInvitation = async (req, res) => {
 };
 
 const renewInvitation = async (req, res) => {
-  const { headers, payload } = req;
-
-  // validate token
-  const { token } = headers || {};
-  if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-  const { isValid, userId } = await verifyToken(token);
-  if (!isValid) {
-    return res.response({ msg: "Unauthorized" }).code(401);
-  }
-
+  const { payload } = req;
   const requiredPayload = ["email", "statusFrom"];
   const validatePayload = validateContent(requiredPayload, payload);
   if (!validatePayload.isValid) {
@@ -210,18 +176,7 @@ const renewInvitation = async (req, res) => {
 };
 
 const getUserById = async (req, res) => {
-  const { params, headers } = req;
-  // Token Validation
-  const { token } = headers || {};
-  if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-  // Decode the token & search for existing token
-  const { isValid } = await verifyToken(token);
-  if (!isValid) {
-    return res.response({ msg: "Unauthorized" }).code(401);
-  }
-
-  // get id
+  const { params } = req;
   const { id } = params;
   const user = await findById(id);
   if (!user) return res.response({}).code(404);
@@ -237,15 +192,6 @@ const getUserById = async (req, res) => {
 };
 
 const inactivateUser = async (req, res) => {
-  const { params, headers } = req || {};
-  const { token } = headers || {};
-  if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-  const { isValid } = await verifyToken(token);
-  if (!isValid) {
-    return res.response({ msg: "unauthorized" }).code(401);
-  }
-
   let isOK = true;
   let statusCode = 200;
   let errors = {
@@ -280,15 +226,7 @@ const inactivateUser = async (req, res) => {
 };
 
 const activateUser = async (req, res) => {
-  const { params, headers } = req || {};
-  const { token } = headers || {};
-  if (!token) return res.response({ errors: "Missing Token" }).code(400);
-
-  const { isValid } = await verifyToken(token);
-  if (!isValid) {
-    return res.response({ msg: "unauthorized" }).code(401);
-  }
-
+  const { params } = req || {};
   let isOK = true;
   let statusCode = 200;
   let errors = {
