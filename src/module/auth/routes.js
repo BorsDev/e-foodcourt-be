@@ -8,6 +8,7 @@ const authRoutes = [
   {
     method: "POST",
     path: "/auth/register",
+    options: { auth: false },
     handler: registerController,
   },
   {
@@ -19,6 +20,7 @@ const authRoutes = [
   {
     method: "DELETE",
     path: "/auth/logout/{userId}",
+    options: { auth: "jwt" },
     handler: logoutController,
   },
 ];
