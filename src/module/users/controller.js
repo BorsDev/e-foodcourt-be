@@ -60,6 +60,7 @@ const getUserList = async (req, res) => {
 };
 
 const inviteUser = async (req, res) => {
+  const { userId } = req.auth.credentials;
   const { query, payload } = req;
   const { method, type } = query || {};
   if (!method || !type) {

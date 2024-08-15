@@ -19,7 +19,7 @@ const authRoutes = [
   },
   {
     method: "DELETE",
-    path: "/auth/logout/{userId}",
+    path: "/auth/logout",
     options: { auth: "jwt" },
     handler: logoutController,
   },

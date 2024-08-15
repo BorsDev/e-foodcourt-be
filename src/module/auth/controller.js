@@ -127,7 +127,7 @@ const loginController = async (req, res) => {
 
   try {
     const newtoken = await generateAuthToken(userId);
-    await update({ status: "active" }, [userId]);
+    await update({ status: "active" }, { id: userId });
     return res.response({ token: newtoken }).code(200);
   } catch (error) {
     console.log(error);
@@ -138,7 +138,7 @@ const loginController = async (req, res) => {
 const logoutController = async (req, res) => {
   const { userId } = req.auth.credentials;
   try {
-    await update({ status: "offline" }, [userId]);
+    await update({ status: "offline" }, { id: userId });
     return res.response({ msg: "Logout Successfully" }).code(200);
   } catch (error) {
     return res.response({ errors: "Server Error" }).code(500);

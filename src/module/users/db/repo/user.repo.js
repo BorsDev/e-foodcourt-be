@@ -95,6 +95,8 @@ const updateStatus = async (status, fields) => {
 };
 
 const update = async (data, conditions) => {
+  console.log(conditions);
+
   try {
     await model.update(data, { where: { ...conditions } });
     return { isOK: true };
