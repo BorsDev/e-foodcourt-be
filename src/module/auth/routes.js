@@ -13,6 +13,7 @@ const authRoutes = [
   {
     method: "PATCH",
     path: "/auth/login",
+    options: { auth: false },
     handler: loginController,
   },
   {

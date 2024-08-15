@@ -5,9 +5,11 @@ require("dotenv").config();
 const Hapi = require("@hapi/hapi");
 const Qs = require("qs");
 const Sequelize = require("sequelize");
+const Jwt = require("@hapi/jwt");
 
-// required routes file
+// required file
 const routes = require("./routes");
+const { auth } = require("./src/helper/auth.helper");
 
 const init = async () => {
   // init database
@@ -40,6 +42,7 @@ const init = async () => {
     },
   });
 
+  await auth(server, Jwt, process.env.AUTH_SECRET);
   server.route(routes);
   await server.start();
   console.log(`Server berjalan pada ${server.info.uri}`);

@@ -3,9 +3,6 @@ const passwordValidator = require("password-validator");
 const Jwt = require("@hapi/jwt");
 require("dotenv").config();
 
-// Auth Token DB
-const authTokenModel = require("../module/auth/models/__index")["authToken"];
-
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -84,35 +81,38 @@ const generateAuthToken = async (userId) => {
   );
 };
 
-const verifyToken = async (token) => {
-  const decodedToken = Jwt.token.decode(token);
-  const { payload } = decodedToken.decoded;
-  const { userId } = payload;
-  const options = {};
-
-  const isExist = await authTokenModel.findOne({
-    where: { token },
+const auth = async (server, Jwt, secret) => {
+  await server.register(Jwt);
+  server.auth.strategy("jwt", "jwt", {
+    keys: secret,
+    validate: (artifacts, req, res) => {
+      const { userId } = artifacts.decoded.payload;
+      if (!userId) return res.response({ msg: "unauthorized" }).code(401);
+      return {
+        isValid: true,
+        userId,
+      };
+    },
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      nbf: true,
+      exp: true,
+      maxAgeSec: 14400, // 4 hours
+      timeSkewSec: 15,
+    },
   });
-  if (!token) return { isValid: false };
 
-  try {
-    Jwt.token.verify(decodedToken, process.env.AUTH_SECRET, options);
-    if (isExist.userId != userId) return { isValid: false };
-    return {
-      isValid: true,
-      userId: payload.userId,
-    };
-  } catch (err) {
-    return { isValid: false };
-  }
+  server.auth.default("jwt");
 };
 
 module.exports = {
+  auth,
   validateEmail,
   validatePassword,
   encryptPassword,
   comparePassword,
   generateAuthToken,
-  verifyToken,
   uniqueEmail,
 };

@@ -10,7 +10,12 @@ const {
 } = require("./controller");
 
 const userRoutes = [
-  { method: "GET", path: "/users", handler: getUserList },
+  {
+    method: "GET",
+    path: "/users",
+    options: { auth: "jwt" },
+    handler: getUserList,
+  },
   { method: "POST", path: "/users/invite", handler: inviteUser },
   { method: "PUT", path: "/users/invite", handler: renewInvitation },
   { method: "GET", path: "/users/invite/{code}", handler: validateInvitation },
