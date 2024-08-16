@@ -1,4 +1,5 @@
 const {
+  registerController,
   getUserList,
   getUserById,
   inviteUser,
@@ -6,10 +7,15 @@ const {
   validateInvitation,
   inactivateUser,
   activateUser,
-  // terminateUserById,
 } = require("./controller");
 
 const userRoutes = [
+  {
+    method: "POST",
+    path: "/auth/register",
+    options: { auth: false },
+    handler: registerController,
+  },
   {
     method: "GET",
     path: "/users",
@@ -52,7 +58,6 @@ const userRoutes = [
     options: { auth: "jwt" },
     handler: getUserById,
   },
-  // { method: "DELETE", path: "/users/{id}", handler: terminateUserById },
 ];
 
 module.exports = userRoutes;

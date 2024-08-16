@@ -1,9 +1,8 @@
-const bcrypt = require("bcryptjs");
-const passwordValidator = require("password-validator");
-const Jwt = require("@hapi/jwt");
-const { findById } = require("../module/users/db/repo/user.repo");
-const { user } = require("../module/users/db/model/__index");
 require("dotenv").config();
+const bcrypt = require("bcryptjs");
+const Jwt = require("@hapi/jwt");
+const passwordValidator = require("password-validator");
+const { findById } = require("../module/users/db/repo/user.repo");
 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
