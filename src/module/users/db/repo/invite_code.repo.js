@@ -39,6 +39,7 @@ const getExpiredCodeEmail = async (currentTime) => {
       where: { expiredAt: { [Op.lt]: currentTime } },
       raw: true,
     });
+
     return { isOK: true, data };
   } catch (error) {
     console.log("Error from getExpiredCodeEmail: \n", error);

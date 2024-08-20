@@ -26,6 +26,7 @@ const {
   regularProviderRegistration,
   InvitedProviderRegistration,
 } = require("../users/usecase/register");
+const getList = require("./usecase/getUserList");
 
 const registerController = async (req, res) => {
   const { query, payload } = req;
@@ -118,33 +119,15 @@ const getUserList = async (req, res) => {
   await updateExpiredUser(expiredEmail);
 
   // if query not provided, returned default stuffs
-  const page = query.page ? query.page : 0;
-  const limit = query.limit ? query.limit : 10;
-  const offset = page > 1 ? (page - 1) * limit : 0;
+  const getList = await getUser(query, userList);
+  if (!getList.isOK) {
+    return res.response({ msg: "server_error" }).code(500);
+  }
 
-  const usersList = await userList(["createdAt", "ASC"], limit, offset);
-  const users = usersList.data;
-
-  let data = [];
-  // function to extract fullname from the createdById
-  const getFullName = (id) => {
-    if (id == "") return "system";
-    const index = users.findIndex((u) => u.id == id);
-    return users[index].fullName;
-  };
-
-  users.forEach((user) => {
-    data.push({
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      createdBy: getFullName(user.createdById),
-      createdAt: user.createdAt,
-    });
-  });
-
+  const { data } = getList;
+  if (data.length() == 0) {
+    return res.response({ msg: "not_found" }).code(404);
+  }
   return res.response({ data }).code(200);
 };
 
