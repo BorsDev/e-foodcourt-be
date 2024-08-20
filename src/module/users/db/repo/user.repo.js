@@ -39,16 +39,6 @@ const findById = async (id) => {
   }
 };
 
-const updateInvitedUser = async (data, email) => {
-  try {
-    await model.update({ ...data, status: "active" }, { where: { email } });
-    return { isOK: true };
-  } catch (error) {
-    console.log("error from updateInvitedUser \n", error);
-    throw new Error(error);
-  }
-};
-
 const findByEmail = async (email) => {
   try {
     const data = await model.findOne({ where: { email } });
@@ -86,18 +76,7 @@ const updateExpiredUser = async (email) => {
   }
 };
 
-const updateStatus = async (status, fields) => {
-  try {
-    await model.update({ status }, { where: { ...fields } });
-  } catch (error) {
-    console.log("updateStatus error \n", error);
-    throw new Error(error);
-  }
-};
-
 const update = async (data, conditions) => {
-  console.log(conditions);
-
   try {
     await model.update(data, { where: { ...conditions } });
     return { isOK: true };
@@ -114,7 +93,5 @@ module.exports = {
   findByEmail,
   userList,
   update,
-  updateInvitedUser,
   updateExpiredUser,
-  updateStatus,
 };

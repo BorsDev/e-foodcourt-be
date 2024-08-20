@@ -4,7 +4,7 @@ const InvitedProviderRegistration = async (
   getCodeInfo,
   findByEmail,
   encryptPassword,
-  updateInvited,
+  update,
   deleteCode,
 ) => {
   const { email, password, fullName } = data || {};
@@ -51,7 +51,10 @@ const InvitedProviderRegistration = async (
 
   if (isOK) {
     try {
-      await updateInvited({ fullName, password: isPassValid.password }, email);
+      await update(
+        { fullName, password: isPassValid.password, status: "active" },
+        email,
+      );
       await deleteCode(code);
     } catch (error) {
       isOK = false;

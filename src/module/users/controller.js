@@ -7,10 +7,8 @@ const {
   findById,
   update,
   updateExpiredUser,
-  updateStatus,
   userList,
   create,
-  updateInvitedUser,
 } = require("../users/db/repo/user.repo");
 
 const {
@@ -91,7 +89,7 @@ const registerController = async (req, res) => {
       getCodeInfo,
       findByEmail,
       encryptPassword,
-      updateInvitedUser,
+      update,
       deleteCode,
     );
     statusCode = registration.statusCode;
@@ -211,7 +209,7 @@ const renewInvitation = async (req, res) => {
 
   try {
     const code = await generateCode();
-    await updateStatus("invited", email);
+    await update({ status: "invited" }, email);
     await updateInviteCode(code, email);
     return res.response({}).code(200);
   } catch (error) {
