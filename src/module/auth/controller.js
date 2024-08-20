@@ -5,6 +5,8 @@ const {
   generateAuthToken,
 } = require("../../helper/auth.helper");
 
+const { findByEmail, update } = require("../users/db/repo/user.repo");
+
 const loginController = async (req, res) => {
   const { payload } = req;
   const requiredPayload = ["email", "password"];
