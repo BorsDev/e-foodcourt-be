@@ -27,6 +27,7 @@ const {
   InvitedProviderRegistration,
 } = require("../users/usecase/register");
 const getUsersList = require("./usecase/getUserList");
+const inviteUsers = require("../users/usecase/inviteUser");
 
 const registerController = async (req, res) => {
   const { query, payload } = req;
@@ -149,46 +150,21 @@ const inviteUser = async (req, res) => {
 
   // validate received email
   const { data, role } = payload || {};
-  const emails = data;
-  const length = emails.length;
+  const invitingUser = await inviteUsers(
+    userId,
+    data,
+    role,
+    uniqueEmail,
+    generateCode,
+    bulkCreate,
+    addInviteCodes,
+  );
 
-  if (length < 1 || length > 5)
-    return res.response({ validation: "limit", count: length }).code(400);
-
-  let errors = [];
-  let newUser = [];
-  let invitations = [];
-  let isError = false;
-
-  for (const email of emails) {
-    const isEmailValid = await uniqueEmail(email, findByEmail);
-    const code = await generateCode();
-    if (!isEmailValid.isValid) {
-      isError = true;
-      errors.push(isEmailValid.err);
-    }
-    newUser.push({
-      fullName: email,
-      email,
-      role,
-      status: "invited",
-      createdById: userId,
-      password: "",
-    });
-    invitations.push({ email, ...code });
+  if (!invitingUser.isOK) {
+    const error = invitingUser.error;
+    res.response(error).code(400);
   }
-
-  if (isError) return res.response({ type: "validation", errors }).code(400);
-
-  try {
-    await bulkCreate(newUser);
-    await addInviteCodes(invitations);
-
-    return res.response({}).code(200);
-  } catch (error) {
-    console.log(error);
-    return res.response({ error }).code(500);
-  }
+  res.response({}).code(200);
 };
 
 const validateInvitation = async (req, res) => {

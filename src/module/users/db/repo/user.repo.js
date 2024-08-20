@@ -7,7 +7,7 @@ const create = async (data) => {
     return { isOK: true };
   } catch (error) {
     console.log("Logging from create User \n", error);
-    return { isOK: false, error };
+    throw new Error(error);
   }
 };
 
@@ -17,7 +17,7 @@ const bulkCreate = async (data) => {
     return { isOK: true };
   } catch (error) {
     console.log("Logging from createBulk \n", error);
-    return { isOK: false, error };
+    throw new Error(error);
   }
 };
 
@@ -33,12 +33,9 @@ const findById = async (id) => {
       isOK: true,
       data: user,
     };
-  } catch (errors) {
-    console.log("error from user.findByPk", errors);
-    return {
-      isOK: false,
-      error: "server_error",
-    };
+  } catch (error) {
+    console.log("error from findById", error);
+    throw new Error(error);
   }
 };
 
@@ -48,19 +45,21 @@ const updateInvitedUser = async (data, email) => {
     return { isOK: true };
   } catch (error) {
     console.log("error from updateInvitedUser \n", error);
-    return { isOK: false, error };
+    throw new Error(error);
   }
 };
 
 const findByEmail = async (email) => {
-  const data = await model.findOne({ where: { email } });
-  if (!data) return { registered: false };
-  return { registered: true, data };
+  try {
+    const data = await model.findOne({ where: { email } });
+    if (!data) return { registered: false };
+    return { registered: true, data };
+  } catch (error) {
+    throw new Error(error);
+  }
 };
 
 const userList = async (order, limit, offset) => {
-  console.log(order);
-
   const data = await model.findAll({
     order: [order],
     limit,
@@ -70,11 +69,8 @@ const userList = async (order, limit, offset) => {
   try {
     return { isOK: true, data };
   } catch (error) {
-    console.log("error from user.getUserList", errors);
-    return {
-      isOK: false,
-      error: "server_error",
-    };
+    console.log("error from user.getUserList", error);
+    throw new Error(error);
   }
 };
 
@@ -86,7 +82,7 @@ const updateExpiredUser = async (email) => {
     );
   } catch (error) {
     console.log("updateExpiredUser error \n", error);
-    return { isOK: false, error };
+    throw new Error(error);
   }
 };
 
@@ -95,7 +91,7 @@ const updateStatus = async (status, fields) => {
     await model.update({ status }, { where: { ...fields } });
   } catch (error) {
     console.log("updateStatus error \n", error);
-    return { isOK: false, error };
+    throw new Error(error);
   }
 };
 
@@ -105,9 +101,9 @@ const update = async (data, conditions) => {
   try {
     await model.update(data, { where: { ...conditions } });
     return { isOK: true };
-  } catch (errors) {
-    console.log("update error \n", errors);
-    return { isOK: false, errors };
+  } catch (error) {
+    console.log("update error \n", error);
+    throw new Error(error);
   }
 };
 
