@@ -61,7 +61,12 @@ const findByEmail = async (email) => {
 const userList = async (order, limit, offset) => {
   console.log(order);
 
-  const data = await model.findAll({ order: [order], limit, offset });
+  const data = await model.findAll({
+    order: [order],
+    limit,
+    offset,
+    raw: true,
+  });
   try {
     return { isOK: true, data };
   } catch (error) {

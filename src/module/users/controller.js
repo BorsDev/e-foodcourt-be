@@ -26,7 +26,7 @@ const {
   regularProviderRegistration,
   InvitedProviderRegistration,
 } = require("../users/usecase/register");
-const getList = require("./usecase/getUserList");
+const getUsersList = require("./usecase/getUserList");
 
 const registerController = async (req, res) => {
   const { query, payload } = req;
@@ -110,22 +110,18 @@ const registerController = async (req, res) => {
 };
 
 const getUserList = async (req, res) => {
-  const { query } = req;
-  const expiredUser = await getExpiredCodeEmail(Date.now());
-  const expiredEmail = [];
-  expiredUser.data.forEach((user) => {
-    expiredEmail.push(user.email);
-  });
-  await updateExpiredUser(expiredEmail);
-
-  // if query not provided, returned default stuffs
-  const getList = await getUser(query, userList);
+  const { query } = req || {};
+  const getList = await getUsersList(
+    query,
+    userList,
+    getExpiredCodeEmail,
+    updateExpiredUser,
+  );
   if (!getList.isOK) {
     return res.response({ msg: "server_error" }).code(500);
   }
-
   const { data } = getList;
-  if (data.length() == 0) {
+  if (data.length == 0) {
     return res.response({ msg: "not_found" }).code(404);
   }
   return res.response({ data }).code(200);
