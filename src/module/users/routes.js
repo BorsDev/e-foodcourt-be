@@ -9,6 +9,8 @@ const {
   activateUser,
 } = require("./controller");
 
+const UserController = require("./controller.v2");
+const userController = new UserController();
 const userRoutes = [
   {
     method: "POST",
@@ -21,6 +23,12 @@ const userRoutes = [
     path: "/users",
     options: { auth: "jwt" },
     handler: getUserList,
+  },
+  {
+    method: "GET",
+    path: "/users/v2",
+    options: { auth: "jwt" },
+    handler: userController.getUserList,
   },
   {
     method: "POST",
