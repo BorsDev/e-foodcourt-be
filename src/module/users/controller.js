@@ -127,7 +127,7 @@ const getUserList = async (req, res) => {
   return res.response({ data }).code(200);
 };
 
-// in progress
+// done
 const inviteUser = async (req, res) => {
   const { userId } = req.auth.credentials;
   const { query, payload } = req;
@@ -167,6 +167,7 @@ const inviteUser = async (req, res) => {
   res.response({}).code(200);
 };
 
+// done
 const validateInvitation = async (req, res) => {
   const { params } = req;
   const { code } = params || {};

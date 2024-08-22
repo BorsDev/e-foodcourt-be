@@ -5,6 +5,7 @@ const UserRepo = require("./db/repo/user.repo.v2");
 const InviteCodeRepo = require("./db/repo/invite_code.repo.v2");
 const GetUserList = require("./usecase/getUserList.v2");
 const InviteUser = require("./usecase/inviteUser.v2");
+const ValidateInvitation = require("./usecase/validateInvitation");
 
 class UserController {
   constructor() {
@@ -12,6 +13,7 @@ class UserController {
     this.InviteCodeRepo = new InviteCodeRepo();
     this.getUserList = this.getUserList.bind(this);
     this.inviteUser = this.inviteUser.bind(this);
+    this.validateInvitation = this.validateInvitation.bind(this);
   }
 
   async getUserList(req, res) {
@@ -69,6 +71,25 @@ class UserController {
     } catch (error) {
       console.log(error);
       return res.respose({ msg: "server_error" }).code(500);
+    }
+  }
+
+  async validateInvitation(req, res) {
+    const { params } = req;
+    const { code } = params || {};
+
+    const ValidateInvitationUseCase = new ValidateInvitation(
+      this.InviteCodeRepo,
+      this.UserRepo,
+      code,
+    );
+    try {
+      const result = await ValidateInvitationUseCase.execute();
+      if (!result.isOK) return res.response({ msg: "invalid" }).code(400);
+      return res.response({}).code(200);
+    } catch (error) {
+      console.log("validateInvitation controller error \n", error);
+      return res.response({ msg: "server_error" }).code(500);
     }
   }
 }
