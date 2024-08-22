@@ -108,6 +108,7 @@ const registerController = async (req, res) => {
   return res.response({}).code(statusCode);
 };
 
+// done
 const getUserList = async (req, res) => {
   const { query } = req || {};
   const getList = await getUsersList(
@@ -126,6 +127,7 @@ const getUserList = async (req, res) => {
   return res.response({ data }).code(200);
 };
 
+// in progress
 const inviteUser = async (req, res) => {
   const { userId } = req.auth.credentials;
   const { query, payload } = req;

@@ -15,10 +15,12 @@ const uniqueEmail = async (email, findByEmail) => {
   const isRegistered = await findByEmail(email);
 
   if (!isValid) err.push("invalid");
-  if (isRegistered.registered) err.push("registered");
+  if (isRegistered.isOK) err.push("registered");
 
-  if (!isValid || isRegistered.registered)
+  if (!isValid || isRegistered.isOK) {
     return { isValid: false, err: { address: email, err } };
+  }
+
   return { isValid: true };
 };
 

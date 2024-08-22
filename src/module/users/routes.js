@@ -25,12 +25,6 @@ const userRoutes = [
     handler: getUserList,
   },
   {
-    method: "GET",
-    path: "/users/v2",
-    options: { auth: "jwt" },
-    handler: userController.getUserList,
-  },
-  {
     method: "POST",
     path: "/users/invite",
     options: { auth: "jwt" },
@@ -65,6 +59,18 @@ const userRoutes = [
     path: "/users/{id}",
     options: { auth: "jwt" },
     handler: getUserById,
+  },
+  {
+    method: "GET",
+    path: "/v2/users",
+    options: { auth: "jwt" },
+    handler: userController.getUserList,
+  },
+  {
+    method: "POST",
+    path: "/v2/users/invite",
+    options: { auth: "jwt" },
+    handler: userController.inviteUser,
   },
 ];
 

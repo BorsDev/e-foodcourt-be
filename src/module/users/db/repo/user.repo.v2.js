@@ -45,6 +45,10 @@ class UserRepo {
           isOK: false,
           error: "not_found",
         };
+      return {
+        isOK: true,
+        data: user,
+      };
     } catch (error) {
       throw new Error("DB FindbyID User", error);
     }
