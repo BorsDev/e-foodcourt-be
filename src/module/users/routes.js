@@ -60,6 +60,7 @@ const userRoutes = [
     options: { auth: "jwt" },
     handler: getUserById,
   },
+  ///////////////////////////////////////////////////////
   {
     method: "GET",
     path: "/v2/users",
@@ -89,6 +90,12 @@ const userRoutes = [
     path: "/v2/users/{id}",
     options: { auth: "jwt" },
     handler: getUserById,
+  },
+  {
+    method: "PUT",
+    path: "/v2/users/activate/{id}",
+    options: { auth: "jwt" },
+    handler: activateUser,
   },
 ];
 
