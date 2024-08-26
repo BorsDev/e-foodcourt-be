@@ -21,7 +21,7 @@ class UserController {
     this.renewInvitation = this.renewInvitation.bind(this);
     this.getUserById = this.getUserById.bind(this);
     this.activateUser = this.activateUser.bind(this);
-    this.deactivateUser = this.deactivateUser.bind(this);
+    this.inactivateUser = this.inactivateUser.bind(this);
   }
 
   async getUserList(req, res) {
