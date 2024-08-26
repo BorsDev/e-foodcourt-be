@@ -97,6 +97,12 @@ const userRoutes = [
     options: { auth: "jwt" },
     handler: activateUser,
   },
+  {
+    method: "PUT",
+    path: "/v2/users/inactivate/{id}",
+    options: { auth: "jwt" },
+    handler: inactivateUser,
+  },
 ];
 
 module.exports = userRoutes;

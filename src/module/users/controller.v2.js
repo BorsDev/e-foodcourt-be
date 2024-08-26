@@ -9,6 +9,7 @@ const ValidateInvitation = require("./usecase/validateInvitation");
 const RenewInvitation = require("./usecase/renewInvitation");
 const GetUserById = require("./usecase/getUserById");
 const ActivateUser = require("./usecase/activateUser");
+const InactivateUser = require("./usecase/inactivateUser");
 
 class UserController {
   constructor() {
@@ -20,6 +21,7 @@ class UserController {
     this.renewInvitation = this.renewInvitation.bind(this);
     this.getUserById = this.getUserById.bind(this);
     this.activateUser = this.activateUser.bind(this);
+    this.deactivateUser = this.deactivateUser.bind(this);
   }
 
   async getUserList(req, res) {
@@ -154,6 +156,24 @@ class UserController {
 
     try {
       const data = await ActivateUserUseCase.execute();
+      if (!data) return res.response({ type: "not_found" }).code(404);
+      if (!data.isOK) return res.response({ type: "invalid" }).code(400);
+      return res.response({}).code(200);
+    } catch (error) {
+      console.log(error);
+      return res.response({ msg: "server_error" }).code(500);
+    }
+  }
+
+  async inactivateUser(req, res) {
+    const { params } = req;
+    const { id } = params;
+    if (!id)
+      return res.response({ type: "missing_params", fields: "id" }).code(400);
+    const InactivateUserUseCase = new InactivateUser(this.UserRepo, id);
+
+    try {
+      const data = await InactivateUserUseCase.execute();
       if (!data) return res.response({ type: "not_found" }).code(404);
       if (!data.isOK) return res.response({ type: "invalid" }).code(400);
       return res.response({}).code(200);

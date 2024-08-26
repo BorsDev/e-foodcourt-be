@@ -1,4 +1,4 @@
-class ActivateUser {
+class InactivateUser {
   constructor(UserRepo, id) {
     this.UserRepo = UserRepo;
     this.id = id;
@@ -8,7 +8,7 @@ class ActivateUser {
       const isExist = await this.UserRepo.findById(this.id);
       if (!isExist.isOK) return;
       const data = isExist.data;
-      if (data.status != "inactive")
+      if (data.status != "active")
         return {
           isOK: false,
           type: "invalid",
@@ -19,7 +19,9 @@ class ActivateUser {
       };
     } catch (error) {
       console.log(error);
-      throw new Error("ActivateUser Error");
+      throw new Error("DeactivateUser Error");
     }
   }
 }
+
+module.exports = InactivateUser;
