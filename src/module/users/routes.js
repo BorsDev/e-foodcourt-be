@@ -84,6 +84,12 @@ const userRoutes = [
     options: { auth: "jwt" },
     handler: userController.renewInvitation,
   },
+  {
+    method: "GET",
+    path: "/v2/users/{id}",
+    options: { auth: "jwt" },
+    handler: getUserById,
+  },
 ];
 
 module.exports = userRoutes;

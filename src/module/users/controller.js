@@ -187,6 +187,7 @@ const validateInvitation = async (req, res) => {
   return res.response({ data: info }).code(200);
 };
 
+//done
 const renewInvitation = async (req, res) => {
   const { payload } = req;
   const requiredPayload = ["email", "statusFrom"];
@@ -221,6 +222,7 @@ const renewInvitation = async (req, res) => {
   }
 };
 
+//done
 const getUserById = async (req, res) => {
   const { params } = req;
   const { id } = params;
