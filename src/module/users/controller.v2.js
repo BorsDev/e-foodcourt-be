@@ -6,6 +6,7 @@ const InviteCodeRepo = require("./db/repo/invite_code.repo.v2");
 const GetUserList = require("./usecase/getUserList.v2");
 const InviteUser = require("./usecase/inviteUser.v2");
 const ValidateInvitation = require("./usecase/validateInvitation");
+const RenewInvitation = require("./usecase/renewInvitation");
 
 class UserController {
   constructor() {
@@ -14,6 +15,7 @@ class UserController {
     this.getUserList = this.getUserList.bind(this);
     this.inviteUser = this.inviteUser.bind(this);
     this.validateInvitation = this.validateInvitation.bind(this);
+    this.renewInvitation = this.renewInvitation.bind(this);
   }
 
   async getUserList(req, res) {
@@ -89,6 +91,35 @@ class UserController {
       return res.response({}).code(200);
     } catch (error) {
       console.log("validateInvitation controller error \n", error);
+      return res.response({ msg: "server_error" }).code(500);
+    }
+  }
+
+  async renewInvitation(req, res) {
+    const { payload } = req;
+    const requiredPayload = ["email", "statusFrom"];
+    const validatePayload = validateContent(requiredPayload, payload);
+    if (!validatePayload.isValid) {
+      return res
+        .response({ type: "missing_data", fields: validatePayload.err })
+        .code(400);
+    }
+
+    const { email, statusFrom } = payload;
+    const RenewInvitationUsecase = new RenewInvitation(
+      this.UserRepo,
+      this.InviteCodeRepo,
+      email,
+      statusFrom,
+    );
+
+    try {
+      const renewingInvitation = await RenewInvitationUsecase.execute();
+      if (!renewingInvitation.isOK)
+        return res.response(renewingInvitation.error).code(400);
+      return res.response({}).code(200);
+    } catch (error) {
+      console.log(error);
       return res.response({ msg: "server_error" }).code(500);
     }
   }

@@ -212,7 +212,7 @@ const renewInvitation = async (req, res) => {
 
   try {
     const code = await generateCode();
-    await update({ status: "invited" }, email);
+    await update({ status: "invited" }, { email });
     await updateInviteCode(code, email);
     return res.response({}).code(200);
   } catch (error) {

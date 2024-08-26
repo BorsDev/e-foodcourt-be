@@ -78,6 +78,12 @@ const userRoutes = [
     options: { auth: false },
     handler: userController.validateInvitation,
   },
+  {
+    method: "PUT",
+    path: "/v2/users/invite",
+    options: { auth: "jwt" },
+    handler: userController.renewInvitation,
+  },
 ];
 
 module.exports = userRoutes;
