@@ -1,62 +1,57 @@
-const updateExpireUser = async (getExpiredCodeEmail, updateExpiredUser) => {
-  const expiredUser = await getExpiredCodeEmail(Date.now());
-  const expiredEmail = [];
-  expiredUser.data.forEach((user) => {
-    expiredEmail.push(user.email);
-  });
-  await updateExpiredUser(expiredEmail);
-};
+class GetUserList {
+  constructor(UserRepo, InviteCodeRepo, query = {}) {
+    this.UserRepo = UserRepo;
+    this.InviteCodeRepo = InviteCodeRepo;
+    this.page = query.page || 1;
+    this.limit = query.limit || 10;
+    this.offset = this.page > 1 ? (this.page - 1) * limit : 0;
+  }
+  async updateExpireUser() {
+    const expiredUser = await this.InviteCodeRepo.getExpiredCodeEmail(
+      Date.now(),
+    );
+    const expiredEmail = [];
+    expiredUser.data.forEach((user) => {
+      expiredEmail.push(user.email);
+    });
+    await this.UserRepo.updateExpiredUser(expiredEmail);
+  }
 
-const getFullName = (id, users) => {
-  if (id == "") return "system";
-  const index = users.findIndex((u) => u.id == id);
-  return users[index].fullName;
-};
+  getFullName(id, users) {
+    if (id === "") return "SYSTEM";
+    const index = users.findIndex((u) => u.id == id);
+    return users[index].fullName;
+  }
 
-module.exports = async (
-  query,
-  userList,
-  getExpiredCodeEmail,
-  updateExpiredUser,
-) => {
-  const page = query.page ? query.page : 0;
-  const limit = query.limit ? query.limit : 10;
-  const offset = page > 1 ? (page - 1) * limit : 0;
+  async execute() {
+    try {
+      await this.updateExpireUser();
+      const result = await this.UserRepo.getList(
+        ["createdAt", "ASC"],
+        this.limit,
+        this.offset,
+      );
 
-  await updateExpireUser(getExpiredCodeEmail, updateExpiredUser);
-  try {
-    const usersList = await userList(["createdAt", "ASC"], limit, offset);
+      const list = result.data || [];
+      if (!list)
+        return {
+          isOK: true,
+          data: list,
+        };
 
-    const users = usersList.data || [];
-    if (!users) {
+      const data = list.map((item) => {
+        return { ...item, createdBy: this.getFullName(item.createdById, list) };
+      });
       return {
         isOK: true,
-        data: [],
+        data,
       };
-    }
-    console.log(users);
+    } catch (error) {
+      console.log(error);
 
-    let data = [];
-    users.forEach((user) => {
-      data.push({
-        id: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        createdBy: getFullName(user.createdById, users),
-        createdAt: user.createdAt,
-      });
-    });
-    return {
-      isOK: true,
-      data,
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      isOK: false,
-      error: error,
-    };
+      throw new Error("GET USER LIST USECASE ERROR", error);
+    }
   }
-};
+}
+
+module.exports = GetUserList;
