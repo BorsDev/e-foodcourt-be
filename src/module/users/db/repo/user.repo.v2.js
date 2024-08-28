@@ -22,7 +22,7 @@ class UserRepo {
 
   async findById(id) {
     try {
-      const user = await Model.findByPk(id);
+      const user = await Model.findByPk(id, { raw: true });
       if (!user)
         return {
           isOK: false,

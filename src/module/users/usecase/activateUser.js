@@ -13,9 +13,9 @@ class ActivateUser {
           isOK: false,
           type: "invalid",
         };
+      await this.UserRepo.update({ status: "active" }, { id: data.id });
       return {
         isOK: true,
-        data,
       };
     } catch (error) {
       console.log(error);
@@ -23,3 +23,5 @@ class ActivateUser {
     }
   }
 }
+
+module.exports = ActivateUser;

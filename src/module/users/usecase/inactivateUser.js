@@ -8,14 +8,15 @@ class InactivateUser {
       const isExist = await this.UserRepo.findById(this.id);
       if (!isExist.isOK) return;
       const data = isExist.data;
-      if (data.status != "active")
+      if (data.status != "active") {
         return {
           isOK: false,
           type: "invalid",
         };
+      }
+      await this.UserRepo.update({ status: "inactive" }, { id: data.id });
       return {
         isOK: true,
-        data,
       };
     } catch (error) {
       console.log(error);

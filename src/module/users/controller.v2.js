@@ -10,6 +10,7 @@ const RenewInvitation = require("./usecase/renewInvitation");
 const GetUserById = require("./usecase/getUserById");
 const ActivateUser = require("./usecase/activateUser");
 const InactivateUser = require("./usecase/inactivateUser");
+const Register = require("./usecase/register");
 
 class UserController {
   constructor() {
@@ -22,6 +23,7 @@ class UserController {
     this.getUserById = this.getUserById.bind(this);
     this.activateUser = this.activateUser.bind(this);
     this.inactivateUser = this.inactivateUser.bind(this);
+    this.register = this.register.bind(this);
   }
 
   async getUserList(req, res) {
@@ -180,6 +182,79 @@ class UserController {
     } catch (error) {
       console.log(error);
       return res.response({ msg: "server_error" }).code(500);
+    }
+  }
+
+  async register(req, res) {
+    const { query, payload } = req;
+    const requiredQuery = ["type", "method"];
+    const validateQuery = validateContent(requiredQuery, query || {});
+    if (!validateQuery.isValid) {
+      return res
+        .response({ type: "missing_params", fields: validateQuery.err })
+        .code(400);
+    }
+
+    const { type, method } = query;
+    const availType = ["provider"];
+    const supportedType = availType.includes(type);
+    if (!supportedType) {
+      return res.response({
+        type: "unsupported",
+        value: query.type,
+        availType,
+      });
+    }
+
+    const availMethod = ["manual", "invited"];
+    const supportedMethod = availMethod.includes(method);
+    if (!supportedMethod) {
+      return res.response({
+        type: "unsupported",
+        value: query.method,
+        availMethod,
+      });
+    }
+
+    const requiredPayload = ["email", "fullName", "password"];
+    const validatePayload = validateContent(requiredPayload, payload || {});
+    if (!validatePayload.isValid) {
+      return res
+        .response({ type: "missing_data", fields: validatePayload.err })
+        .code(400);
+    }
+
+    const RegisterUseCase = new Register(
+      this.UserRepo,
+      this.InviteCodeRepo,
+      payload,
+    );
+
+    try {
+      let error = {};
+      let isOK = true;
+
+      if (type == "provider" && method == "manual") {
+        const result = await RegisterUseCase.regularProviderRegistration();
+        if (!result.isOK) {
+          isOK = false;
+          error = result.errors;
+        }
+      }
+
+      if (type == "provider" && method == "invited") {
+        const { code } = query;
+        const result = await RegisterUseCase.invitedProviderRegistration(code);
+        if (!result.isOK) {
+          isOK = false;
+          error = result.errors;
+        }
+      }
+
+      if (!isOK) return res.response({ error }).code(400);
+      res.response({}).code(200);
+    } catch (error) {
+      res.response({ msg: "server_error" }).code(500);
     }
   }
 }

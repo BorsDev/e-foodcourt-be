@@ -61,6 +61,13 @@ const userRoutes = [
     handler: getUserById,
   },
   ///////////////////////////////////////////////////////
+
+  {
+    method: "POST",
+    path: "/v2/auth/register",
+    options: { auth: false },
+    handler: userController.register,
+  },
   {
     method: "GET",
     path: "/v2/users",
@@ -89,19 +96,19 @@ const userRoutes = [
     method: "GET",
     path: "/v2/users/{id}",
     options: { auth: "jwt" },
-    handler: getUserById,
+    handler: userController.getUserById,
   },
   {
     method: "PUT",
     path: "/v2/users/activate/{id}",
     options: { auth: "jwt" },
-    handler: activateUser,
+    handler: userController.activateUser,
   },
   {
     method: "PUT",
     path: "/v2/users/inactivate/{id}",
     options: { auth: "jwt" },
-    handler: inactivateUser,
+    handler: userController.inactivateUser,
   },
 ];
 
