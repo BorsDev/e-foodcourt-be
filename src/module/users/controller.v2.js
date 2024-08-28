@@ -1,10 +1,10 @@
 // helper
 const { validateContent } = require("../../helper/form.helper");
 
-const UserRepo = require("./db/repo/user.repo.v2");
-const InviteCodeRepo = require("./db/repo/invite_code.repo.v2");
-const GetUserList = require("./usecase/getUserList.v2");
-const InviteUser = require("./usecase/inviteUser.v2");
+const UserRepo = require("./db/repo/user.repo");
+const InviteCodeRepo = require("./db/repo/invite_code.repo");
+const GetUserList = require("./usecase/getUserList");
+const InviteUser = require("./usecase/inviteUser");
 const ValidateInvitation = require("./usecase/validateInvitation");
 const RenewInvitation = require("./usecase/renewInvitation");
 const GetUserById = require("./usecase/getUserById");
