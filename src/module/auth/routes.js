@@ -1,17 +1,18 @@
-const { loginController, logoutController } = require("./controller");
+const AuthController = require("./controller");
+const authController = new AuthController();
 
 const authRoutes = [
   {
     method: "PATCH",
     path: "/auth/login",
     options: { auth: false },
-    handler: loginController,
+    handler: authController.login,
   },
   {
     method: "DELETE",
     path: "/auth/logout",
     options: { auth: "jwt" },
-    handler: logoutController,
+    handler: authController.logout,
   },
 ];
 

@@ -1,4 +1,4 @@
-const UserController = require("./controller.v2");
+const UserController = require("./controller");
 const userController = new UserController();
 const userRoutes = [
   {
